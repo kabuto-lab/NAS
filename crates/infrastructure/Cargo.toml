@@ -24,6 +24,7 @@ tracing = { workspace = true }
 eyre = { workspace = true }
 moka = { workspace = true }
 thiserror = { workspace = true }
+jsonwebtoken = { workspace = true }
 
 [features]
 default = []

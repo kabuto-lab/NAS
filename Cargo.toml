@@ -101,6 +101,10 @@ ammonia = "4"
 base64 = "0.22"
 secrecy = "0.10"
 
+# Auth / JWT
+jsonwebtoken = "9"
+argon2 = "0.5"
+
 # Config
 config = "0.14"
 dotenvy = "0.15"
