@@ -1,0 +1,49 @@
+[package]
+name = "ax-presentation"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lints.clippy]
+all = { level = "warn", priority = -1 }
+pedantic = { level = "warn", priority = -1 }
+nursery = { level = "warn", priority = -1 }
+module_name_repetitions = "allow"
+
+[dependencies]
+ax-common = { workspace = true }
+ax-application = { workspace = true }
+ax-infrastructure = { workspace = true }   # только для DI factory
+ax-domain = { workspace = true }
+axum = { workspace = true }
+tower = { workspace = true }
+tower-http = { workspace = true }
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+tracing = { workspace = true }
+ulid = { workspace = true }
+http = { workspace = true }
+base64 = { workspace = true }
+moka = { workspace = true }
+async-trait = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }
+
+[features]
+default = []
+leptos-ssr = ["dep:leptos", "dep:leptos_axum"]
+
+[dependencies.leptos]
+workspace = true
+optional = true
+
+[dependencies.leptos_axum]
+workspace = true
+optional = true
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["test-util"] }
+rstest = { workspace = true }

@@ -1,0 +1,47 @@
+[package]
+name = "ax-server"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[[bin]]
+name = "ax-server"
+path = "src/main.rs"
+
+[lints.clippy]
+all = { level = "warn", priority = -1 }
+pedantic = { level = "warn", priority = -1 }
+nursery = { level = "warn", priority = -1 }
+module_name_repetitions = "allow"
+
+[dependencies]
+ax-common = { workspace = true }
+ax-application = { workspace = true }
+ax-infrastructure = { workspace = true }
+ax-presentation = { workspace = true }
+ax-runtime = { workspace = true }
+tokio = { workspace = true }
+axum = { workspace = true }
+axum-server = { workspace = true }
+sqlx = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+tracing-opentelemetry = { workspace = true }
+opentelemetry = { workspace = true }
+opentelemetry-otlp = { workspace = true }
+opentelemetry_sdk = { workspace = true }
+sentry = { workspace = true }
+sentry-tracing = { workspace = true }
+metrics = { workspace = true }
+metrics-exporter-prometheus = { workspace = true }
+config = { workspace = true }
+dotenvy = { workspace = true }
+eyre = { workspace = true }
+secrecy = { workspace = true }
+serde = { workspace = true }
+
+# jemalloc only on supported targets
+[target.'cfg(any(target_os = "linux", target_os = "macos"))'.dependencies]
+tikv-jemallocator = { workspace = true }
