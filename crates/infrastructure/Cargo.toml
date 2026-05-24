@@ -28,7 +28,14 @@ eyre = { workspace = true }
 moka = { workspace = true }
 thiserror = { workspace = true }
 
+[features]
+default = []
+integration-tests = []
+
 [dev-dependencies]
 testcontainers = { workspace = true }
 testcontainers-modules = { workspace = true }
 rstest = { workspace = true }
+tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
+uuid = { workspace = true }
+chrono = { workspace = true }
