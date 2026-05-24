@@ -1,0 +1,22 @@
+# Session history (per-machine, may contain secrets / debug dumps)
+istori/*
+!istori/.gitkeep
+
+# Hook runtime state
+.claude/.istori-current
+
+# Claude Code local-only settings (permissions per user/machine)
+.claude/settings.local.json
+
+# Rust build artifacts (when Cargo workspace is initialized)
+target/
+**/*.rs.bk
+Cargo.lock
+.sqlx/
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/
