@@ -1,0 +1,1239 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ТЗ — AX · NAS Rust Migration · cms_pages pilot</title>
+<style>
+  :root {
+    --bg: #0A0A0A;
+    --bg-elev: #131313;
+    --surface: #1A1A1A;
+    --surface-2: #222;
+    --line: #2A2A2A;
+    --text: #FAFAFA;
+    --text-dim: #B8B8B8;
+    --text-mute: #6E6E6E;
+    --gold: #D4AF37;
+    --gold-dim: #8a722a;
+    --green: #4ade80;
+    --cyan: #22d3ee;
+    --blue: #60a5fa;
+    --purple: #a78bfa;
+    --red: #f87171;
+    --orange: #fb923c;
+    --font-head: 'Unbounded', 'Bodoni Moda', Georgia, serif;
+    --font-body: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --font-mono: 'JetBrains Mono', Consolas, 'Courier New', monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: var(--bg); color: var(--text); font-family: var(--font-body); line-height: 1.55; font-size: 14px; }
+  body { padding: 0 0 80px; }
+
+  header.doc-head {
+    border-bottom: 1px solid var(--line);
+    padding: 32px 48px 24px;
+    background: linear-gradient(180deg, #111 0%, var(--bg) 100%);
+  }
+  header.doc-head .breadcrumb { color: var(--text-mute); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 8px; }
+  header.doc-head h1 { font-family: var(--font-head); font-weight: 500; font-size: 28px; letter-spacing: -0.01em; }
+  header.doc-head h1 .accent { color: var(--gold); }
+  header.doc-head .sub { color: var(--text-dim); margin-top: 6px; font-size: 14px; }
+  header.doc-head .meta { display: flex; gap: 24px; margin-top: 14px; font-size: 12px; color: var(--text-mute); }
+  header.doc-head .meta b { color: var(--text-dim); font-weight: 500; }
+
+  nav.tabs {
+    display: flex;
+    gap: 4px;
+    padding: 0 48px;
+    border-bottom: 1px solid var(--line);
+    background: var(--bg);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  nav.tabs button {
+    background: transparent;
+    border: none;
+    color: var(--text-mute);
+    font-family: var(--font-body);
+    font-size: 13px;
+    padding: 14px 22px;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    letter-spacing: 0.02em;
+    transition: color .15s, border-color .15s;
+  }
+  nav.tabs button:hover { color: var(--text-dim); }
+  nav.tabs button.active { color: var(--gold); border-bottom-color: var(--gold); }
+
+  main { padding: 32px 48px; max-width: 1400px; margin: 0 auto; }
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  h2 { font-family: var(--font-head); font-weight: 500; font-size: 20px; letter-spacing: -0.01em; margin: 32px 0 16px; color: var(--gold); }
+  h2:first-child { margin-top: 0; }
+  h3 { font-family: var(--font-head); font-weight: 400; font-size: 15px; letter-spacing: 0.02em; margin: 24px 0 12px; color: var(--text); text-transform: uppercase; }
+  h4 { font-weight: 600; font-size: 13px; margin: 16px 0 8px; color: var(--text-dim); }
+  p { margin: 10px 0; color: var(--text-dim); }
+  strong, b { color: var(--text); font-weight: 600; }
+  code { font-family: var(--font-mono); font-size: 12px; background: var(--surface); padding: 1px 6px; border-radius: 3px; color: var(--gold); border: 1px solid var(--line); }
+  pre { background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: 14px 16px; overflow-x: auto; margin: 12px 0; font-family: var(--font-mono); font-size: 12px; line-height: 1.5; color: var(--text-dim); }
+  pre code { background: transparent; border: none; padding: 0; color: inherit; }
+  ul, ol { margin: 8px 0 12px 22px; color: var(--text-dim); }
+  li { margin: 4px 0; }
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 13px; }
+  th, td { padding: 8px 12px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+  th { background: var(--surface); color: var(--gold); font-weight: 500; font-size: 12px; letter-spacing: 0.04em; text-transform: uppercase; }
+  td { color: var(--text-dim); }
+  td b, td strong { color: var(--text); }
+
+  /* === GANTT === */
+  .gantt-meta { display: flex; gap: 32px; margin: 8px 0 20px; flex-wrap: wrap; }
+  .gantt-meta .item { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-mute); }
+  .gantt-meta .swatch { width: 14px; height: 14px; border-radius: 2px; }
+
+  .gantt {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: 24px;
+  }
+  .gantt-header {
+    display: grid;
+    grid-template-columns: 360px repeat(17, 1fr);
+    background: var(--bg-elev);
+    border-bottom: 1px solid var(--line);
+    font-size: 11px;
+    color: var(--text-mute);
+  }
+  .gantt-header .h-task { padding: 10px 14px; border-right: 1px solid var(--line); font-weight: 500; letter-spacing: 0.04em; text-transform: uppercase; }
+  .gantt-header .h-week { text-align: center; padding: 10px 0; border-right: 1px solid var(--line); font-family: var(--font-mono); }
+  .gantt-header .h-week.boundary { background: rgba(212,175,55,0.05); color: var(--gold-dim); }
+
+  .gantt-row {
+    display: grid;
+    grid-template-columns: 360px repeat(17, 1fr);
+    border-bottom: 1px solid var(--line);
+    min-height: 36px;
+    align-items: center;
+  }
+  .gantt-row:hover { background: rgba(255,255,255,0.02); }
+  .gantt-row:last-child { border-bottom: none; }
+  .gantt-row .task {
+    padding: 8px 14px;
+    border-right: 1px solid var(--line);
+    font-size: 12px;
+    color: var(--text);
+    height: 100%;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .gantt-row .task .id { color: var(--text-mute); font-family: var(--font-mono); font-size: 10px; min-width: 26px; }
+  .gantt-row .task .name { flex: 1; }
+  .gantt-row .task .deps { color: var(--text-mute); font-size: 10px; font-family: var(--font-mono); }
+  .gantt-row .bar-cell { position: relative; height: 36px; border-right: 1px solid rgba(255,255,255,0.03); }
+  .gantt-row .bar {
+    position: absolute;
+    top: 8px;
+    bottom: 8px;
+    border-radius: 3px;
+    font-size: 10px;
+    color: var(--bg);
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    padding: 0 8px;
+    font-family: var(--font-mono);
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  .bar.phase-audit { background: var(--blue); color: var(--bg); }
+  .bar.phase-plan { background: var(--cyan); color: var(--bg); }
+  .bar.phase-bootstrap { background: var(--purple); color: var(--bg); }
+  .bar.phase-impl { background: var(--gold); color: var(--bg); }
+  .bar.phase-test { background: var(--green); color: var(--bg); }
+  .bar.phase-pilot { background: var(--orange); color: var(--bg); }
+  .bar.phase-stage { background: #c084fc; color: var(--bg); }
+  .bar.phase-ga { background: #f472b6; color: var(--bg); }
+  .bar.phase-retire { background: var(--red); color: var(--bg); }
+  .bar.milestone { background: var(--gold); color: var(--bg); border-radius: 50%; width: 14px; padding: 0; height: 14px; top: 11px; }
+
+  .gantt-phase-divider {
+    display: grid;
+    grid-template-columns: 360px repeat(17, 1fr);
+    background: var(--bg-elev);
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+    font-size: 10px;
+    color: var(--gold-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .gantt-phase-divider .label { padding: 6px 14px; font-weight: 600; }
+
+  .milestones {
+    display: grid;
+    grid-template-columns: 80px 1fr;
+    gap: 8px 18px;
+    margin: 16px 0;
+  }
+  .milestones .week { color: var(--gold); font-family: var(--font-mono); font-size: 12px; font-weight: 600; }
+  .milestones .desc { color: var(--text-dim); font-size: 13px; }
+
+  /* === PLAN === */
+  .plan-step {
+    display: grid;
+    grid-template-columns: 60px 1fr;
+    gap: 16px;
+    margin: 16px 0;
+    padding: 14px 16px;
+    background: var(--surface);
+    border-left: 3px solid var(--gold);
+    border-radius: 0 4px 4px 0;
+  }
+  .plan-step .num { font-family: var(--font-mono); color: var(--gold); font-size: 18px; font-weight: 600; }
+  .plan-step .body h4 { color: var(--text); margin-top: 0; font-size: 14px; font-weight: 600; }
+  .plan-step .body .desc { color: var(--text-dim); font-size: 13px; margin: 6px 0; }
+  .plan-step .body .meta { margin-top: 8px; display: flex; gap: 16px; flex-wrap: wrap; font-size: 11px; }
+  .plan-step .body .meta span { color: var(--text-mute); font-family: var(--font-mono); }
+  .plan-step .body .meta b { color: var(--text-dim); }
+  .plan-step.dep-blocked { border-left-color: var(--text-mute); opacity: 0.85; }
+  .plan-step.milestone-step { border-left-color: var(--green); }
+  .plan-step.risk { border-left-color: var(--red); }
+
+  /* === ARCHITECTURE === */
+  .arch-layers {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+    margin: 18px 0;
+  }
+  .arch-layer {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 16px 20px;
+    position: relative;
+  }
+  .arch-layer .l-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; }
+  .arch-layer .l-head h3 { margin: 0; font-size: 14px; color: var(--gold); font-family: var(--font-head); }
+  .arch-layer .l-head .crate { color: var(--text-mute); font-family: var(--font-mono); font-size: 11px; }
+  .arch-layer .l-desc { color: var(--text-dim); font-size: 13px; }
+  .arch-layer .l-deps { margin-top: 8px; font-family: var(--font-mono); font-size: 11px; color: var(--text-mute); }
+  .arch-layer .l-deps b { color: var(--gold-dim); font-weight: 500; }
+  .arch-layer.l1 { border-left: 3px solid var(--purple); }
+  .arch-layer.l2 { border-left: 3px solid var(--cyan); }
+  .arch-layer.l3 { border-left: 3px solid var(--gold); }
+  .arch-layer.l4 { border-left: 3px solid var(--green); }
+
+  .arch-flow {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 18px 24px;
+    margin: 18px 0;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-dim);
+    line-height: 1.7;
+    white-space: pre;
+    overflow-x: auto;
+  }
+  .arch-flow b { color: var(--gold); }
+
+  .module-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 16px 20px;
+    margin: 12px 0;
+  }
+  .module-card h4 { color: var(--gold); font-family: var(--font-head); margin: 0 0 8px; font-size: 14px; }
+  .module-card .props { display: grid; grid-template-columns: 140px 1fr; gap: 6px 16px; font-size: 12px; }
+  .module-card .props .k { color: var(--text-mute); }
+  .module-card .props .v { color: var(--text-dim); font-family: var(--font-mono); font-size: 12px; }
+
+  .pill {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 10px;
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-right: 4px;
+  }
+  .pill.spine { background: rgba(212,175,55,0.15); color: var(--gold); border: 1px solid var(--gold-dim); }
+  .pill.write { background: rgba(248,113,113,0.15); color: var(--red); border: 1px solid var(--red); }
+  .pill.read { background: rgba(74,222,128,0.15); color: var(--green); border: 1px solid var(--green); }
+  .pill.phase { background: rgba(96,165,250,0.15); color: var(--blue); border: 1px solid var(--blue); }
+  .pill.budget { background: rgba(167,139,250,0.15); color: var(--purple); border: 1px solid var(--purple); }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+
+  .callout {
+    background: rgba(212,175,55,0.06);
+    border: 1px solid var(--gold-dim);
+    border-left: 3px solid var(--gold);
+    padding: 12px 16px;
+    border-radius: 4px;
+    margin: 14px 0;
+    font-size: 13px;
+    color: var(--text-dim);
+  }
+  .callout b { color: var(--gold); }
+
+  .footer-note { margin-top: 48px; padding-top: 18px; border-top: 1px solid var(--line); color: var(--text-mute); font-size: 11px; }
+</style>
+</head>
+<body>
+
+<header class="doc-head">
+  <div class="breadcrumb">barbie / AX / ТЗ · v1.0 · 2026-05-24</div>
+  <h1>ТЗ — <span class="accent">AX</span> · NAS Rust Migration <span style="color: var(--text-mute); font-weight: 300;">·</span> Pilot: cms_pages read-path</h1>
+  <div class="sub">Vertical-slice миграция первого модуля NAS на Rust-стек (Axum + Leptos + SQLx) с параллельной работой SITE1 как canonical writer.</div>
+  <div class="meta">
+    <span><b>Source:</b> bridge/01-04 + ENTITY.md v3.3</span>
+    <span><b>Pilot module:</b> cms_pages (score 8.4, §12.7)</span>
+    <span><b>Status:</b> exploration spec — не commitment миграции</span>
+    <span><b>SLA:</b> contract identity vs SITE1, p95 ≤ 60ms, 0 cross-tenant leaks</span>
+  </div>
+</header>
+
+<nav class="tabs">
+  <button data-tab="roadmap" class="active">Роадмэп · Гантт</button>
+  <button data-tab="plan">План</button>
+  <button data-tab="architecture">Архитектура</button>
+</nav>
+
+<main>
+
+<!-- =================== TAB 1: ROADMAP / GANTT =================== -->
+<section id="roadmap" class="panel active">
+
+<h2>Migration timeline — cms_pages pilot</h2>
+<p>17 недель end-to-end: <b>Audit → RFC/ADR → Bootstrap → Implementation → Validation → Pilot (Phase A) → Stage (Phase B) → GA (Phase C) → Retire (Phase D)</b>. Каждая фаза имеет gate-условия из <code>ENTITY.md §12.6.6</code>; без зелёного gate'а — нет перехода.</p>
+
+<div class="gantt-meta">
+  <span class="item"><span class="swatch" style="background:var(--blue)"></span> Audit</span>
+  <span class="item"><span class="swatch" style="background:var(--cyan)"></span> Planning (RFC/ADR/PLAN/VAL)</span>
+  <span class="item"><span class="swatch" style="background:var(--purple)"></span> Bootstrap</span>
+  <span class="item"><span class="swatch" style="background:var(--gold)"></span> Implementation</span>
+  <span class="item"><span class="swatch" style="background:var(--green)"></span> Validation / Tests</span>
+  <span class="item"><span class="swatch" style="background:var(--orange)"></span> Pilot (Phase A, 1 tenant)</span>
+  <span class="item"><span class="swatch" style="background:#c084fc"></span> Stage (Phase B, 3 tenants)</span>
+  <span class="item"><span class="swatch" style="background:#f472b6"></span> GA (Phase C, all pilots)</span>
+  <span class="item"><span class="swatch" style="background:var(--red)"></span> Retire (Phase D)</span>
+</div>
+
+<div class="gantt">
+  <div class="gantt-header">
+    <div class="h-task">Task</div>
+    <div class="h-week">W1</div>
+    <div class="h-week">W2</div>
+    <div class="h-week boundary">W3</div>
+    <div class="h-week">W4</div>
+    <div class="h-week">W5</div>
+    <div class="h-week">W6</div>
+    <div class="h-week boundary">W7</div>
+    <div class="h-week">W8</div>
+    <div class="h-week boundary">W9</div>
+    <div class="h-week">W10</div>
+    <div class="h-week boundary">W11</div>
+    <div class="h-week">W12</div>
+    <div class="h-week boundary">W13</div>
+    <div class="h-week">W14</div>
+    <div class="h-week">W15</div>
+    <div class="h-week">W16</div>
+    <div class="h-week boundary">W17</div>
+  </div>
+
+  <div class="gantt-phase-divider"><div class="label">Phase 1 — Audit · Planning (parallel)</div></div>
+
+  <div class="gantt-row">
+    <div class="task"><span class="id">T01</span><span class="name">SITE1 audit — cms_pages e2e</span></div>
+    <div class="bar-cell" style="grid-column: 2 / 4;"><div class="bar phase-audit" style="left:0; right:0;">audit</div></div>
+  </div>
+  <div class="gantt-row">
+    <div class="task"><span class="id">T02</span><span class="name">RFC-001 + ADR-001 (P1 / P2)</span></div>
+    <div class="bar-cell" style="grid-column: 3 / 4;"><div class="bar phase-plan" style="left:0; right:0;">RFC+ADR</div></div>
+  </div>
+  <div class="gantt-row">
+    <div class="task"><span class="id">T03</span><span class="name">PLAN-001 + VAL-001 (P3 / P4)</span></div>
+    <div class="bar-cell" style="grid-column: 3 / 4;"><div class="bar phase-plan" style="left:0; right:0;">PLAN+VAL</div></div>
+  </div>
+
+  <div class="gantt-phase-divider"><div class="label">Phase 2 — Bootstrap</div></div>
+
+  <div class="gantt-row">
+    <div class="task"><span class="id">T04</span><span class="name">Cargo workspace + manifests</span></div>
+    <div class="bar-cell" style="grid-column: 4 / 5;"><div class="bar phase-bootstrap" style="left:0; right:0;">workspace</div></div>
+  </div>
+  <div class="gantt-row">
+    <div class="task"><span class="id">T05</span><span class="name">xtask + cargo-deny + clippy + rustfmt</span></div>
+    <div class="bar-cell" style="grid-column: 4 / 5;"><div class="bar phase-bootstrap" style="left:0; right:0;">fitness funcs</div></div>
+  </div>
+  <div class="gantt-row">
+    <div class="task"><span class="id">T06</span><span class="name">CI pipeline (GitHub Actions)</span></div>
+    <div class="bar-cell" style="grid-column: 4 / 5;"><div class="bar phase-bootstrap" style="left:0; right:0;">CI</div></div>
+  </div>
+
+  <div class="gantt-phase-divider"><div class="label">Phase 3 — Implementation (Four-Layer, inside-out)</div></div>
+
+  <div class="gantt-row">
+    <div class="task"><span class="id">T07</span><span class="name">crates/common — TenantId, AppError, IDs</span></div>
+    <div class="bar-cell" style="grid-column: 5 / 6;"><div class="bar phase-impl" style="left:0; right:0;">common</div></div>
+  </div>
+  <div class="gantt-row">
+    <div class="task"><span class="id">T08</span><span class="name">crates/domain — PublishedPage, Block, VOs</span></div>
+    <div class="bar-cell" style="grid-column: 5 / 6;"><div class="bar phase-impl" style="left:0; right:0;">domain</div></div>
+  </div>
+  <div class="gantt-row">
+    <div class="task"><span class="id">T09</span><span class="name">crates/application — port traits + use case</span></div>
+    <div class="bar-cell" style="grid-column: 6 / 7;"><div class="bar phase-impl" style="left:0; right:0;">application</div></div>
+  </div>
+  <div class="gantt-row">
+    <div class="task"><span class="id">T10</span><span class="name">migration 0001_cms_pages_expand.sql + RLS</span></div>
+    <div class="bar-cell" style="grid-column: 6 / 7;"><div class="bar phase-impl" style="left:0; right:0;">SQL expand</div></div>
+  </div>
+  <div class="gantt-row">
+    <div class="task"><span class="id">T11</span><span class="name">crates/infrastructure — PgCmsRepository + with_tenant</span></div>
+    <div class="bar-cell" style="grid-column: 6 / 8;"><div class="bar phase-impl" style="left:0; right:0;">infrastructure</div></div>
+  </div>
+  <div class="gantt-row">
+    <div class="task"><span class="id">T12</span><span class="name">crates/presentation — Axum handler + router + middleware</span></div>
+    <div class="bar-cell" style="grid-column: 7 / 8;"><div class="bar phase-impl" style="left:0; right:0;">presentation</div></div>
+  </div>
+  <div class="gantt-row">
+    <div class="task"><span class="id">T13</span><span class="name">apps/server bootstrap + AppState DI</span></div>
+    <div class="bar-cell" style="grid-column: 7 / 8;"><div class="bar phase-impl" style="left:0; right:0;">server</div></div>
+  </div>
+
+  <div class="gantt-phase-divider"><div class="label">Phase 4 — Validation</div></div>
+
+  <div class="gantt-row">
+    <div class="task"><span class="id">T14</span><span class="name">Integration tests (testcontainers + real PG)</span></div>
+    <div class="bar-cell" style="grid-column: 8 / 9;"><div class="bar phase-test" style="left:0; right:0;">int tests</div></div>
+  </div>
+  <div class="gantt-row">
+    <div class="task"><span class="id">T15</span><span class="name">Fuzz test 1M (proptest cross-tenant)</span></div>
+    <div class="bar-cell" style="grid-column: 8 / 9;"><div class="bar phase-test" style="left:0; right:0;">fuzz 1M</div></div>
+  </div>
+  <div class="gantt-row">
+    <div class="task"><span class="id">T16</span><span class="name">Perf baseline — oha vs SITE1 + EXPLAIN snapshots</span></div>
+    <div class="bar-cell" style="grid-column: 8 / 9;"><div class="bar phase-test" style="left:0; right:0;">perf</div></div>
+  </div>
+  <div class="gantt-row">
+    <div class="task"><span class="id">T17</span><span class="name">Caddy snippet + rollback drill (&lt; 5 min)</span></div>
+    <div class="bar-cell" style="grid-column: 8 / 9;"><div class="bar phase-test" style="left:0; right:0;">ops drill</div></div>
+  </div>
+
+  <div class="gantt-phase-divider"><div class="label">Phase A — Pilot (1 tenant, contract identity verification)</div></div>
+
+  <div class="gantt-row">
+    <div class="task"><span class="id">T18</span><span class="name">Deploy AX-server + Caddy routing для pilot tenant</span></div>
+    <div class="bar-cell" style="grid-column: 9 / 11;"><div class="bar phase-pilot" style="left:0; right:0;">pilot 1 tenant (2w)</div></div>
+  </div>
+  <div class="gantt-row">
+    <div class="task"><span class="id">T19</span><span class="name">JSON contract diff vs SITE1 (byte-for-byte)</span></div>
+    <div class="bar-cell" style="grid-column: 9 / 10;"><div class="bar phase-pilot" style="left:0; right:0;">contract diff</div></div>
+  </div>
+  <div class="gantt-row">
+    <div class="task"><span class="id">T20</span><span class="name">Observability live — Sentry/Grafana cutover-watch</span></div>
+    <div class="bar-cell" style="grid-column: 9 / 11;"><div class="bar phase-pilot" style="left:0; right:0;">observability</div></div>
+  </div>
+  <div class="gantt-row">
+    <div class="task"><span class="id">M-A</span><span class="name">GATE: pilot exit (12 validation gates green)</span></div>
+    <div class="bar-cell" style="grid-column: 11 / 12;"><div class="bar milestone" title="Phase A → B gate"></div></div>
+  </div>
+
+  <div class="gantt-phase-divider"><div class="label">Phase B — Stage (Leptos SSR + 3 tenants + canary)</div></div>
+
+  <div class="gantt-row">
+    <div class="task"><span class="id">T21</span><span class="name">Leptos SSR adapter (tenant_shell + cms_page_component)</span></div>
+    <div class="bar-cell" style="grid-column: 11 / 13;"><div class="bar phase-stage" style="left:0; right:0;">Leptos SSR</div></div>
+  </div>
+  <div class="gantt-row">
+    <div class="task"><span class="id">T22</span><span class="name">Expand pilot → 3 tenants (varied design tokens)</span></div>
+    <div class="bar-cell" style="grid-column: 11 / 13;"><div class="bar phase-stage" style="left:0; right:0;">stage 3 tenants</div></div>
+  </div>
+  <div class="gantt-row">
+    <div class="task"><span class="id">T23</span><span class="name">HTML diff: pentagon / barbiespa / roxy-spa (variance test)</span></div>
+    <div class="bar-cell" style="grid-column: 12 / 13;"><div class="bar phase-stage" style="left:0; right:0;">design variance</div></div>
+  </div>
+  <div class="gantt-row">
+    <div class="task"><span class="id">M-B</span><span class="name">GATE: stage exit (perf p95 ≤ 60ms confirmed)</span></div>
+    <div class="bar-cell" style="grid-column: 13 / 14;"><div class="bar milestone" title="Phase B → C gate"></div></div>
+  </div>
+
+  <div class="gantt-phase-divider"><div class="label">Phase C — GA (all pilot tenants, 4 weeks observation)</div></div>
+
+  <div class="gantt-row">
+    <div class="task"><span class="id">T24</span><span class="name">Roll-out all whitelisted tenants на AX read-path</span></div>
+    <div class="bar-cell" style="grid-column: 13 / 17;"><div class="bar phase-ga" style="left:0; right:0;">GA all tenants (4w observation)</div></div>
+  </div>
+  <div class="gantt-row">
+    <div class="task"><span class="id">T25</span><span class="name">Continuous perf + tenant-isolation monitoring</span></div>
+    <div class="bar-cell" style="grid-column: 13 / 17;"><div class="bar phase-ga" style="left:0; right:0;">monitoring</div></div>
+  </div>
+
+  <div class="gantt-phase-divider"><div class="label">Phase D — Retire (SITE1 read-path decommission)</div></div>
+
+  <div class="gantt-row">
+    <div class="task"><span class="id">T26</span><span class="name">Deprecate SITE1 GET /v1/cms/pages/public/by-slug</span></div>
+    <div class="bar-cell" style="grid-column: 17 / 18;"><div class="bar phase-retire" style="left:0; right:0;">retire</div></div>
+  </div>
+  <div class="gantt-row">
+    <div class="task"><span class="id">M-D</span><span class="name">GATE: SITE1 read-path 0 RPS for 7 days → DROP</span></div>
+    <div class="bar-cell" style="grid-column: 17 / 18;"><div class="bar milestone" title="Final retire"></div></div>
+  </div>
+</div>
+
+<h3>Ключевые milestones</h3>
+<div class="milestones">
+  <div class="week">W2 end</div><div class="desc">P1–P4 артефакты sign-off'нуты (RFC + ADR + Plan + Validation Spec)</div>
+  <div class="week">W3 end</div><div class="desc">Cargo workspace компилируется, CI green, xtask architecture-check passes</div>
+  <div class="week">W7 end</div><div class="desc">cms_pages read endpoint работает локально, contract identity vs SITE1 проверен curl-ом</div>
+  <div class="week">W8 end</div><div class="desc">12 validation gates green (включая 1M fuzz, perf budget, rollback drill &lt; 5 мин)</div>
+  <div class="week">W10 end</div><div class="desc"><b>Phase A → B gate</b> · 1 pilot tenant 2 недели в production, 0 incidents, 0 cross-tenant leaks</div>
+  <div class="week">W12 end</div><div class="desc"><b>Phase B → C gate</b> · Leptos SSR работает, design variance test проходит на 3 контрастных тенантах</div>
+  <div class="week">W16 end</div><div class="desc"><b>Phase C → D gate</b> · GA на всех whitelisted тенантах 4 недели без regression</div>
+  <div class="week">W17 end</div><div class="desc"><b>Phase D final</b> · SITE1 read-path retired, AX = canonical read для cms_pages</div>
+</div>
+
+<h3>Параллелизация и зависимости</h3>
+<table>
+  <thead><tr><th>Task</th><th>Зависит от</th><th>Блокирует</th><th>Параллельно с</th></tr></thead>
+  <tbody>
+    <tr><td>T01 Audit</td><td>—</td><td>T02, T03</td><td>—</td></tr>
+    <tr><td>T02 RFC+ADR</td><td>T01</td><td>T04+</td><td>T03</td></tr>
+    <tr><td>T07 common</td><td>T04 (workspace)</td><td>T08, T09</td><td>T05, T06</td></tr>
+    <tr><td>T08 domain</td><td>T07</td><td>T09, T11</td><td>—</td></tr>
+    <tr><td>T09 application</td><td>T08</td><td>T11, T12</td><td>T10</td></tr>
+    <tr><td>T10 SQL migration</td><td>T01 (schema knowledge)</td><td>T11 (для compile-time sqlx prepare)</td><td>T09</td></tr>
+    <tr><td>T11 infrastructure</td><td>T09, T10</td><td>T12, T13, T14</td><td>—</td></tr>
+    <tr><td>T12 presentation</td><td>T11</td><td>T13</td><td>—</td></tr>
+    <tr><td>T14 int tests</td><td>T11</td><td>M-A (gate)</td><td>T15, T16</td></tr>
+    <tr><td>T15 fuzz 1M</td><td>T14</td><td>M-A</td><td>T16</td></tr>
+    <tr><td>T16 perf</td><td>T13</td><td>M-A</td><td>T14, T15</td></tr>
+    <tr><td>T18 pilot deploy</td><td>M-A (Phase 4 gate)</td><td>T21+</td><td>T19, T20</td></tr>
+  </tbody>
+</table>
+
+<div class="callout">
+  <b>Compression rule:</b> Phase 1–4 (audit → validation) — 8 недель — фиксированы по объёму работы. Phase A–D (миграция в production) — 9 недель — фиксированы по <b>наблюдению</b>, не по работе. Сократить наблюдение = пропустить класс багов, проявляющихся только под реальной нагрузкой. Не ускорять Phase A–C без deliberate ADR.
+</div>
+
+</section>
+
+<!-- =================== TAB 2: PLAN =================== -->
+<section id="plan" class="panel">
+
+<h2>Implementation plan — 17 weeks, step by step</h2>
+<p>Каждый шаг = atomic commit-cell с явными artifact'ами и gate'ами. Перед стартом каждого шага AI-кодер обязан перечитать релевантные секции <code>ENTITY.md</code>; перед merge в main — все шаги предыдущей фазы должны быть зелёные.</p>
+
+<h3>Phase 1 — Audit & Planning (W1–W2)</h3>
+
+<div class="plan-step">
+  <div class="num">01</div>
+  <div class="body">
+    <h4>SITE1 audit — cms_pages модуль end-to-end</h4>
+    <div class="desc">Прочитать все <code>★</code>-помеченные файлы из <code>bridge/01_STRUCTURE.md §1</code>. Зафиксировать в <code>docs/audit/AUDIT-cms_pages-&lt;date&gt;.md</code>: schema, миграции, сервисный метод <code>getPublishedBySlug</code>, controller route, DTO/Zod schema, tenant middleware, isolation specs, public render path.</div>
+    <div class="meta">
+      <span><b>Artifact:</b> docs/audit/AUDIT-cms_pages-2026-05-31.md</span>
+      <span><b>Duration:</b> 5 days</span>
+      <span><b>Mode:</b> read-only, никакой код в AX/ не пишется</span>
+    </div>
+  </div>
+</div>
+
+<div class="plan-step">
+  <div class="num">02</div>
+  <div class="body">
+    <h4>RFC-001 (Strategic) + ADR-001 (Architectural)</h4>
+    <div class="desc">RFC: business reason (perf win + decoupling Next↔API), constraints (contract identity SLA, общая БД, существующий PgBouncer), out of scope (write path, admin UI, других модули). ADR: Four-Layer with cms_pages_v_active view + RLS, alternatives rejected (full table read, ORM-style, eager Leptos SSR). Шаблоны из <code>ENTITY.md §2.5</code>.</div>
+    <div class="meta">
+      <span><b>Artifact:</b> docs/rfc/RFC-001-cms_pages-migration.md + docs/adr/ADR-001-four-layer-rls.md</span>
+      <span><b>Reversal cost:</b> low (view drop, role drop, Caddy route revert)</span>
+    </div>
+  </div>
+</div>
+
+<div class="plan-step">
+  <div class="num">03</div>
+  <div class="body">
+    <h4>PLAN-001 (Execution) + VAL-001 (Verification spec)</h4>
+    <div class="desc">PLAN: нумерованный список этого документа с указанием spine/non-spine по <code>CLAUDE.md §M</code>. VAL: success criteria — p95 ≤ 60ms, 0 cross-tenant leaks в 1M fuzz, contract identity (HTML byte-diff допустим только в <code>X-Stack</code> + timestamps + request ID), N+1 absent, EXPLAIN cost stable.</div>
+    <div class="meta">
+      <span><b>Artifact:</b> docs/plans/PLAN-001-cms_pages-pilot.md + docs/validations/VAL-001-cms_pages.md</span>
+      <span><b>Gate:</b> P4 sign-off обязателен перед W3</span>
+    </div>
+  </div>
+</div>
+
+<h3>Phase 2 — Bootstrap (W3)</h3>
+
+<div class="plan-step">
+  <div class="num">04</div>
+  <div class="body">
+    <h4>Cargo workspace + manifests</h4>
+    <div class="desc">Root <code>Cargo.toml</code> с <code>resolver = "2"</code>, members = <code>crates/*</code> + xtask. Per-crate <code>Cargo.toml</code> по таблице зависимостей из <code>bridge/03 §3.2</code>. <code>rust-toolchain.toml</code> pin'ит stable-1.84 + rustfmt + clippy components. <code>rustfmt.toml</code>, <code>clippy.toml</code>.</div>
+    <div class="meta">
+      <span><b>Artifact:</b> Cargo.toml workspace, 5 crate manifests</span>
+      <span><b>Verify:</b> cargo build --workspace — green (даже пустой)</span>
+    </div>
+  </div>
+</div>
+
+<div class="plan-step">
+  <div class="num">05</div>
+  <div class="body">
+    <h4>xtask crate — fitness functions</h4>
+    <div class="desc">Стартовый xtask с командами: <code>architecture-check</code> (boundaries), <code>magic-check</code> (NO MAGIC §2.7), <code>check-planning-refs</code> (PR без RFC/ADR/Plan/Val refs блокируется). cargo-deny config <code>deny.toml</code> per <code>ENTITY.md §2.6, §19</code>.</div>
+    <div class="meta">
+      <span><b>Artifact:</b> xtask/src/main.rs, deny.toml, .clippy.toml</span>
+      <span><b>CI gate:</b> любой PR проходит через xtask suite</span>
+    </div>
+  </div>
+</div>
+
+<div class="plan-step">
+  <div class="num">06</div>
+  <div class="body">
+    <h4>CI pipeline (.github/workflows/ci.yml)</h4>
+    <div class="desc">Workflow: <code>cargo build</code> → <code>clippy -D warnings</code> → <code>fmt --check</code> → <code>sqlx prepare --check</code> → <code>cargo test</code> → <code>cargo deny check</code> → <code>cargo udeps</code> (nightly) → <code>cargo audit</code> (nightly). Кешировать <code>~/.cargo/registry</code>, <code>target/</code>.</div>
+    <div class="meta">
+      <span><b>Artifact:</b> .github/workflows/ci.yml</span>
+      <span><b>Note:</b> на этапе W3 testcontainers PG ещё не нужен — добавится в W6</span>
+    </div>
+  </div>
+</div>
+
+<h3>Phase 3 — Implementation (W4–W7, inside-out)</h3>
+
+<div class="plan-step">
+  <div class="num">07</div>
+  <div class="body">
+    <h4>crates/common — TenantId, AppError, IDs, Page&lt;T&gt;</h4>
+    <div class="desc"><code>TenantId(Uuid)</code> newtype с <code>Copy</code>+<code>Hash</code> (см. <code>ENTITY.md §6</code>). <code>AppError</code> enum с <code>thiserror</code> + <code>IntoResponse</code> mapping в HTTP status (см. <code>ENTITY.md §7</code>). <code>RequestId(Ulid)</code>, <code>UserId(Uuid)</code>. <code>Page&lt;T&gt;</code> для cursor pagination (keyset only — <code>ENTITY.md §11.6</code>).</div>
+    <div class="meta">
+      <span><b>Files:</b> src/tenant.rs, src/error.rs, src/ids.rs, src/page.rs</span>
+      <span><b>Test:</b> AppError ↔ HTTP mapping unit-тесты</span>
+    </div>
+  </div>
+</div>
+
+<div class="plan-step">
+  <div class="num">08</div>
+  <div class="body">
+    <h4>crates/domain — PublishedPage aggregate + value objects + Block enum</h4>
+    <div class="desc"><code>PublishedPage</code> aggregate с invariants: status=Published ⇒ publishedAt Some, slug immutable. <code>PageSlug</code> с garde validation regex <code>^[a-z0-9](?:[a-z0-9-]{0,253}[a-z0-9])?$</code>. <code>PageLocale</code> enum (<code>Ru</code>, <code>En</code>, …). <code>Block</code> discriminated union — 6 типов (<code>hero</code>, <code>text</code>, <code>gallery</code>, <code>services</code>, <code>cta</code>, <code>custom</code>) точно по <code>bridge/02 §2</code>.</div>
+    <div class="meta">
+      <span><b>Files:</b> src/cms/{aggregate.rs, value_objects.rs, blocks.rs}</span>
+      <span><b>Boundary:</b> ZERO sqlx / axum / tokio deps — enforce'нуто <code>xtask architecture-check</code></span>
+    </div>
+  </div>
+</div>
+
+<div class="plan-step">
+  <div class="num">09</div>
+  <div class="body">
+    <h4>crates/application — port trait + use case</h4>
+    <div class="desc"><code>trait CmsRepository</code> с <code>find_published_by_slug(ctx, slug, locale) → Result&lt;PublishedPage, AppError&gt;</code>. <code>GetPublishedBySlug</code> use case — тонкая обёртка над repo (см. <code>bridge/03 §5</code>). FUTURE-marker для кэширования и feature flags.</div>
+    <div class="meta">
+      <span><b>Files:</b> src/ports/cms.rs, src/use_cases/cms/get_published_by_slug.rs</span>
+      <span><b>Test:</b> use case unit с mock<code>&lt;CmsRepository&gt;</code></span>
+    </div>
+  </div>
+</div>
+
+<div class="plan-step">
+  <div class="num">10</div>
+  <div class="body">
+    <h4>migration 0001_cms_pages_expand.sql — view + RLS + roles</h4>
+    <div class="desc">CREATE VIEW <code>cms_pages_v_active</code> (published-only filter). ENABLE RLS + POLICY <code>rls_cms_pages_tenant_isolation</code>. CREATE ROLE <code>site1_admin_role</code> BYPASSRLS (для SITE1 admin pool), <code>ax_app_role</code> NOBYPASS (для AX). N-1 compat verified: SITE1 продолжает работать без изменений.</div>
+    <div class="meta">
+      <span><b>File:</b> migrations/0001_cms_pages_expand.sql</span>
+      <span><b>Rollback:</b> DROP POLICY + DISABLE RLS (test'нуть на копии БД до prod)</span>
+      <span><b>SPINE-touch:</b> производственная схема — требует явного user-ok вне AVTONOM</span>
+    </div>
+  </div>
+</div>
+
+<div class="plan-step">
+  <div class="num">11</div>
+  <div class="body">
+    <h4>crates/infrastructure — PgCmsRepository + with_tenant + row mapping</h4>
+    <div class="desc"><code>with_tenant(pool, ctx, |tx| async)</code> helper, выполняет <code>SET LOCAL app.current_tenant_id</code> в начале транзакции (см. <code>ENTITY.md §6</code> и <code>bridge/02 §1.2</code>). <code>PgCmsRepository</code> impl <code>CmsRepository</code>: <code>sqlx::query_as!</code> по <code>cms_pages_v_active</code> с offline metadata в <code>.sqlx/</code>. Row → aggregate mapping без panic'а в success path.</div>
+    <div class="meta">
+      <span><b>Files:</b> src/persistence/{pool.rs, transaction.rs, cms_pages_repo.rs}</span>
+      <span><b>SQLx:</b> compile-time validation; .sqlx/ commit'ится в git для CI offline mode</span>
+      <span><b>Critical:</b> PgBouncer ОБЯЗАТЕЛЬНО в transaction mode — иначе SET LOCAL не работает</span>
+    </div>
+  </div>
+</div>
+
+<div class="plan-step">
+  <div class="num">12</div>
+  <div class="body">
+    <h4>crates/presentation — Axum handler + router + tenant middleware</h4>
+    <div class="desc"><code>get_published_by_slug</code> handler: extractors <code>TenantContextExt</code>, <code>Path&lt;String&gt;</code>, <code>Query&lt;LocaleQuery&gt;</code>; парсит slug + locale через garde; вызывает use case; маппит в <code>CmsPageResponse</code> (см. <code>bridge/03 §7</code>). <code>tenant_resolver</code> middleware — header → subdomain → query priority, как SITE1 (см. <code>bridge/02 §1.1</code>). Кэш slug→TenantId через moka LRU (TTL 5 min).</div>
+    <div class="meta">
+      <span><b>Files:</b> src/api/cms_handlers.rs, src/middleware/{tenant_resolver.rs, request_id.rs}</span>
+      <span><b>Response shape:</b> byte-for-byte SITE1 JSON (см. <code>bridge/03 §1.1</code>)</span>
+    </div>
+  </div>
+</div>
+
+<div class="plan-step">
+  <div class="num">13</div>
+  <div class="body">
+    <h4>apps/server — bootstrap + AppState DI + tracing init</h4>
+    <div class="desc"><code>main()</code> bin: загрузить config (<code>dotenvy</code>), init tracing-subscriber JSON + OTLP exporter (см. <code>ENTITY.md §10</code>), создать PgPool, инжектить через <code>AppState</code>, запустить Axum на <code>:7000</code>. Graceful shutdown через <code>tokio::signal</code>.</div>
+    <div class="meta">
+      <span><b>Files:</b> apps/server/src/{main.rs, router.rs}</span>
+      <span><b>Verify:</b> curl http://localhost:7000/health → "ok\n"</span>
+    </div>
+  </div>
+</div>
+
+<h3>Phase 4 — Validation (W8)</h3>
+
+<div class="plan-step milestone-step">
+  <div class="num">14</div>
+  <div class="body">
+    <h4>Integration tests (testcontainers + real PostgreSQL)</h4>
+    <div class="desc"><code>TestContext</code> поднимает <code>postgres:16</code> через testcontainers, применяет миграции, seed'ит <code>tenant_a</code> + <code>tenant_b</code> с published pages. Тесты: (1) <code>published_page_returns_200_for_owning_tenant</code>, (2) <code>cross_tenant_returns_not_found</code>, (3) <code>draft_returns_not_found</code>, (4) <code>archived_returns_not_found</code>, (5) <code>locale_default_ru</code>. См. <code>bridge/03 §9.1</code>.</div>
+    <div class="meta">
+      <span><b>File:</b> tests/integration/cms_pages_test.rs</span>
+      <span><b>CI cost:</b> ~30s на запуск (docker pull может cache'иться)</span>
+    </div>
+  </div>
+</div>
+
+<div class="plan-step milestone-step">
+  <div class="num">15</div>
+  <div class="body">
+    <h4>Fuzz test — 1M cross-tenant attempts</h4>
+    <div class="desc">proptest с 1M кейсов: random <code>attacker_tenant</code> ≠ <code>victim_tenant</code>, random slug, ожидание <code>AppError::NotFound</code> или absence. 0 leaks допустимо. Полный 1M в nightly; CI smoke — 10k. См. <code>bridge/03 §9.2</code> + <code>ENTITY.md §12.6.6</code> G5.</div>
+    <div class="meta">
+      <span><b>File:</b> tests/fuzz/cms_tenant_isolation.rs</span>
+      <span><b>Budget:</b> 10 min на 1M (proptest config)</span>
+    </div>
+  </div>
+</div>
+
+<div class="plan-step milestone-step">
+  <div class="num">16</div>
+  <div class="body">
+    <h4>Perf baseline — oha vs SITE1 + EXPLAIN snapshots</h4>
+    <div class="desc">Локально: запустить SITE1 на <code>:3010</code> и AX на <code>:7000</code> на одной и той же БД. <code>oha -n 10000 -c 100</code> на оба, сравнить p50/p95/p99/RSS. Target: AX p95 ≤ 60ms, RSS ≤ 200MB. <code>EXPLAIN ANALYZE</code> запроса коммитится в <code>docs/perf/explain/cms_pages_get_published.txt</code>. См. <code>bridge/03 §10</code>.</div>
+    <div class="meta">
+      <span><b>Artifacts:</b> docs/perf/{baseline-site1.txt, ax-result.txt, explain/cms_pages_get_published.txt}</span>
+      <span><b>Gate:</b> AX p95 НЕ хуже SITE1 (Phase 0 acceptable); target window — Phase B</span>
+    </div>
+  </div>
+</div>
+
+<div class="plan-step milestone-step">
+  <div class="num">17</div>
+  <div class="body">
+    <h4>Caddy snippet + rollback drill (timed &lt; 5 минут)</h4>
+    <div class="desc"><code>ops/caddy/Caddyfile.snippets/cms-ax-pilots.caddy</code> — реализует whitelist routing для pilot tenant (см. <code>bridge/03 §12</code>). Rollback drill: на stage VPS откатить routing назад на SITE1 за &lt; 5 минут от detect до восстановления; timestamp'ы — в <code>docs/releases/v0.1.0/ROLLBACK_DRILL.md</code>. Без этого drill'а нет gate G11 (см. <code>ENTITY.md §12.6.6</code>).</div>
+    <div class="meta">
+      <span><b>Artifacts:</b> ops/caddy/Caddyfile.snippets/cms-ax-pilots.caddy + docs/releases/v0.1.0/{ROLLBACK.md, ROLLBACK_DRILL.md}</span>
+      <span><b>Critical:</b> drill — единственное доказательство, что rollback реально работает</span>
+    </div>
+  </div>
+</div>
+
+<h3>Phase A — Pilot (W9–W10, 1 tenant)</h3>
+
+<div class="plan-step">
+  <div class="num">18</div>
+  <div class="body">
+    <h4>Deploy AX-server + Caddy routing for 1 pilot tenant</h4>
+    <div class="desc">Deploy AX binary на тот же VPS, что SITE1 (см. <code>ENTITY.md §6, §21</code>). systemd-юнит + jemalloc. Caddy reload с pilot snippet'ом. Health probe + 30s warm-up. Reverse-proxy timeout 30s, keepalive 30s.</div>
+    <div class="meta">
+      <span><b>Artifacts:</b> ops/systemd/ax-server.service, deploy notes в docs/releases/v0.1.0/</span>
+      <span><b>Verify:</b> curl https://pilot-tenant.spa.me/about → 200 от AX (X-Stack: ax header)</span>
+    </div>
+  </div>
+</div>
+
+<div class="plan-step">
+  <div class="num">19</div>
+  <div class="body">
+    <h4>Contract diff — byte-for-byte JSON vs SITE1</h4>
+    <div class="desc">Для каждой страницы pilot tenant'а параллельно вызвать SITE1 (<code>:3010/v1/...</code>) и AX (<code>:7000/api/v1/...</code>), сравнить JSON shape. Допустимые отличия: <code>X-Stack</code>, <code>X-Request-Id</code>, timestamp'ы. Любая другая дельта — bug, фикс перед dawn pilot live.</div>
+    <div class="meta">
+      <span><b>Script:</b> scripts/contract-diff.sh</span>
+      <span><b>Artifact:</b> docs/audit/contract-diff-results-2026-XX-XX.txt</span>
+    </div>
+  </div>
+</div>
+
+<div class="plan-step">
+  <div class="num">20</div>
+  <div class="body">
+    <h4>Live observability — Sentry projects + Grafana cutover-watch dashboard</h4>
+    <div class="desc">Sentry project <code>nas-ax</code> с tag <code>stack=ax</code>, <code>migration_phase=pilot</code>, alert на <code>nas_tenant_mismatch_total &gt; 0</code>. Grafana dashboard <code>cutover-watch</code> рисует SITE1 vs AX side-by-side: p50/p95/p99 latency, error rate, RPS, RSS, alloc/req. JSON dashboard коммитится в <code>ops/observability/dashboards/cms-cutover-watch.json</code> (см. <code>ENTITY.md §12.6.7</code>).</div>
+    <div class="meta">
+      <span><b>Artifacts:</b> ops/observability/dashboards/cms-cutover-watch.json + Sentry config doc</span>
+      <span><b>Watch criteria:</b> 2 недели observation, 0 critical errors, p95 не хуже SITE1</span>
+    </div>
+  </div>
+</div>
+
+<div class="plan-step milestone-step">
+  <div class="num">M-A</div>
+  <div class="body">
+    <h4>GATE — Phase A → Phase B (12 validation gates, ENTITY §12.6.6)</h4>
+    <div class="desc">Все 12 gate'ов G1–G12 (RFC sign-off, fuzz green, perf budget met, contract diff clean, rollback drill &lt; 5 мин, ownership table updated, …) — green. <code>docs/releases/v0.1.0/DECISION.md</code> с GO/NO-GO решением. Если хоть один gate красный — extend Phase A, не переходить.</div>
+    <div class="meta">
+      <span><b>Artifact:</b> docs/releases/v0.1.0/DECISION.md</span>
+      <span><b>Reviewers:</b> минимум 2 человека на DECISION.md sign-off</span>
+    </div>
+  </div>
+</div>
+
+<h3>Phase B — Stage (W11–W12, 3 tenants + Leptos SSR)</h3>
+
+<div class="plan-step">
+  <div class="num">21</div>
+  <div class="body">
+    <h4>Leptos SSR adapter — tenant_shell + cms_page_component</h4>
+    <div class="desc">Активировать feature <code>leptos-ssr</code> в presentation crate. <code>tenant_shell.rs</code> рендерит <code>&lt;html&gt;&lt;head&gt;...&lt;/head&gt;&lt;body&gt;...&lt;/body&gt;</code> с CSS-vars и Google Fonts URL (см. <code>bridge/04 §2.3–§2.4</code>). <code>cms_page_component.rs</code> рендерит <code>Section[] → HTML</code> с inline-style виджетами (8 widget types — <code>bridge/04 §4</code>). Content-Type меняется на <code>text/html</code>.</div>
+    <div class="meta">
+      <span><b>Files:</b> src/leptos/{tenant_shell.rs, cms_page_component.rs}, +feature default</span>
+      <span><b>Test:</b> snapshot test — HTML byte-diff vs SITE1 (нормализованный whitespace)</span>
+    </div>
+  </div>
+</div>
+
+<div class="plan-step">
+  <div class="num">22</div>
+  <div class="body">
+    <h4>Expand pilot → 3 tenants с разными design tokens</h4>
+    <div class="desc">Caddy whitelist расширяется: добавить 2 более контрастных тенанта (например, <code>pentagon</code> — тёмный strict, <code>barbiespa</code> — luxury pink). Verify через Grafana, что variance в design не вызывает regression.</div>
+    <div class="meta">
+      <span><b>Update:</b> ops/caddy/Caddyfile.snippets/cms-ax-pilots.caddy</span>
+      <span><b>Watch:</b> 2 недели, +50% RPS load (3× pilot)</span>
+    </div>
+  </div>
+</div>
+
+<div class="plan-step">
+  <div class="num">23</div>
+  <div class="body">
+    <h4>HTML diff design variance test — 3 контрастных тенанта</h4>
+    <div class="desc">Integration test <code>tests/integration/test_page_design_variance.rs</code>: одна <code>cms_pages</code> row, разные <code>tenant_design_tokens</code> (3 темы). Diff HTML output — отличия ТОЛЬКО в CSS-vars и Google Fonts URL. Любая hard-coded стилизация — bug (см. <code>bridge/04 §7</code>).</div>
+    <div class="meta">
+      <span><b>File:</b> tests/integration/test_page_design_variance.rs</span>
+      <span><b>Pass:</b> diff между темами укладывается в whitelist (CSS-var values + fonts URL)</span>
+    </div>
+  </div>
+</div>
+
+<div class="plan-step milestone-step">
+  <div class="num">M-B</div>
+  <div class="body">
+    <h4>GATE — Phase B → Phase C</h4>
+    <div class="desc">Perf p95 ≤ 60ms подтверждён под 3× нагрузкой. Design variance test green. 0 incidents за 2 недели. Sentry tenant_mismatch_total = 0. Caddy rollback drill повторён и &lt; 5 мин.</div>
+    <div class="meta">
+      <span><b>Artifact:</b> docs/releases/v0.2.0/DECISION.md</span>
+    </div>
+  </div>
+</div>
+
+<h3>Phase C — GA (W13–W16, all whitelisted tenants)</h3>
+
+<div class="plan-step">
+  <div class="num">24</div>
+  <div class="body">
+    <h4>Rollout — все pilot tenants на AX read-path</h4>
+    <div class="desc">Caddy whitelist расширяется до полного списка тенантов с активными pilot-схемами. SITE1 продолжает обслуживать write + admin. Постепенно (по 1-2 тенанта в день), не batch'ом, чтобы regression localized'нуть.</div>
+    <div class="meta">
+      <span><b>Cadence:</b> 1-2 tenant/day</span>
+      <span><b>Watch:</b> 4 недели observation на полной нагрузке</span>
+    </div>
+  </div>
+</div>
+
+<div class="plan-step">
+  <div class="num">25</div>
+  <div class="body">
+    <h4>Continuous monitoring — perf + isolation + alloc budget</h4>
+    <div class="desc">Daily check'ы Grafana dashboards. Sentry weekly review. <code>cargo xtask alloc-budget</code> в nightly CI: сравнивать dhat-snapshot с baseline, deviation &gt; 20% → issue auto-assigned. Любой regression — pause rollout, root-cause analysis, не «откатить и забыть».</div>
+    <div class="meta">
+      <span><b>Cadence:</b> daily review (5 min)</span>
+      <span><b>Escalation:</b> любой regression — automatic pause + ADR на возобновление</span>
+    </div>
+  </div>
+</div>
+
+<h3>Phase D — Retire (W17)</h3>
+
+<div class="plan-step risk">
+  <div class="num">26</div>
+  <div class="body">
+    <h4>Deprecate SITE1 GET /v1/cms/pages/public/by-slug</h4>
+    <div class="desc">SITE1 endpoint помечается <code>@Deprecated</code> + логирует warning при вызове. Если 7 дней 0 RPS — DROP route. <code>docs/interop/OWNERSHIP.md</code> финализируется: AX = canonical read, SITE1 = canonical write. Schema'у не трогаем (single table, общая БД).</div>
+    <div class="meta">
+      <span><b>Caution:</b> не DROP роут раньше, чем 7 дней нулевого траффика; legacy clients могут существовать вне Caddy</span>
+      <span><b>Reversible:</b> revert route addition trivially</span>
+    </div>
+  </div>
+</div>
+
+<div class="plan-step milestone-step">
+  <div class="num">M-D</div>
+  <div class="body">
+    <h4>GATE — Migration complete</h4>
+    <div class="desc">Final DECISION.md в <code>docs/releases/v1.0.0/</code>: cms_pages migration closed. Ownership table updated, AX = canonical read, SITE1 = canonical write. Lessons learned commit'ятся в SESSION_LOG / retro.</div>
+    <div class="meta">
+      <span><b>Next pilot:</b> media (score 7.8, второй по <code>ENTITY.md §12.7</code>) — отдельный RFC, не запускать в этом цикле</span>
+    </div>
+  </div>
+</div>
+
+<div class="callout">
+  <b>Anti-patterns to avoid</b> (per <code>ENTITY.md §12.6.8</code>): (1) parallel migration of 2+ modules; (2) skipping Phase A observation to "save time"; (3) cherry-picking validation gates; (4) modifying SITE1 schema in expand-contract step; (5) deploying AX without Caddy fallback; (6) treating fuzz test as optional; (7) shared production DB without role separation; (8) merging without RFC/ADR refs; (9) rollback drill skipped because "we know it works"; (10) measuring success only by latency without observing isolation.
+</div>
+
+</section>
+
+<!-- =================== TAB 3: ARCHITECTURE =================== -->
+<section id="architecture" class="panel">
+
+<h2>Four-Layer architecture · TLA Entity</h2>
+<p>AX следует строгой 4-слойной декомпозиции (<code>ENTITY.md §2</code>) с compile-time enforcement через Cargo workspace dependencies и <code>cargo xtask architecture-check</code>. Поток зависимостей <b>однонаправленный</b>: Presentation → Application → Domain ← Infrastructure (адаптер pattern).</p>
+
+<div class="arch-layers">
+  <div class="arch-layer l1">
+    <div class="l-head"><h3>L1 · Presentation</h3><span class="crate">crates/presentation</span></div>
+    <div class="l-desc">Adapters — Axum API surface, Leptos SSR (Phase B), middleware (tenant_resolver, request_id, error_to_response), OpenAPI generator (utoipa). НЕ содержит бизнес-логики, только маршрутизацию + serialization + rendering.</div>
+    <div class="l-deps"><b>Depends on:</b> application · common</div>
+  </div>
+  <div class="arch-layer l2">
+    <div class="l-head"><h3>L2 · Application</h3><span class="crate">crates/application</span></div>
+    <div class="l-desc">Use cases (GetPublishedBySlug), port traits (CmsRepository, CmsRenderer), cross-cutting services (audit, notifications). Тонкие use cases — делегируют в repo. Здесь живёт бизнес-policy («только published»), не domain-логика.</div>
+    <div class="l-deps"><b>Depends on:</b> domain · common · <span style="color:var(--red)">NO: sqlx, axum, tokio</span></div>
+  </div>
+  <div class="arch-layer l3">
+    <div class="l-head"><h3>L3 · Domain</h3><span class="crate">crates/domain</span></div>
+    <div class="l-desc">Pure aggregates (PublishedPage), value objects (PageSlug, PageLocale, Block enum), invariants. ZERO external deps кроме serde, uuid, chrono, garde. Не знает о DB, HTTP, async.</div>
+    <div class="l-deps"><b>Depends on:</b> common <span style="color:var(--text-mute);">(base types only)</span> · <span style="color:var(--red)">NO: tokio, sqlx, axum, reqwest, sentry, tracing</span></div>
+  </div>
+  <div class="arch-layer l4">
+    <div class="l-head"><h3>L4 · Infrastructure</h3><span class="crate">crates/infrastructure</span></div>
+    <div class="l-desc">Adapter implementations: SQLx repos, S3 client, pgmq client, email (lettre). <code>with_tenant(pool, ctx, |tx|)</code> — единственный entry-point в БД. Row → aggregate mapping ВНУТРИ слоя (sqlx::Row не утекает наружу).</div>
+    <div class="l-deps"><b>Depends on:</b> application <span style="color:var(--text-mute);">(implements traits)</span> · domain · common</div>
+  </div>
+</div>
+
+<h3>Поток зависимостей (схема)</h3>
+<div class="arch-flow">  ┌──────────────────────────────────────────────────────────────┐
+  │  <b>L1 Presentation</b>  (Axum router, Leptos SSR, middleware)     │
+  └──────────┬───────────────────────────────────────────────────┘
+             │ uses ports (trait CmsRepository, …)
+             ▼
+  ┌──────────────────────────────────────────────────────────────┐
+  │  <b>L2 Application</b>  (use cases, port traits)                  │
+  └──────────┬─────────────────────────────────────────▲─────────┘
+             │ owns domain types                       │ implements ports
+             ▼                                         │
+  ┌──────────────────────────────┐    ┌────────────────┴─────────┐
+  │  <b>L3 Domain</b>  (pure types)    │    │  <b>L4 Infrastructure</b>     │
+  │  PublishedPage, Block,       │◄───┤  PgCmsRepository,         │
+  │  PageSlug, PageLocale, …     │    │  with_tenant, PgPool      │
+  └──────────────────────────────┘    └───────────────────────────┘
+
+  Circular imports impossible: Cargo workspace deps структурно отрицают.
+  Boundary enforcement: cargo xtask architecture-check (CI gate).</div>
+
+<h2>Multi-tenancy — 5 levels of defense</h2>
+<p>Расширение SITE1 4-слойной защиты (<code>bridge/02 §1</code>) +1 compile-time уровень — newtype <code>TenantId(Uuid)</code> делает «забыли скоупнуть» <b>невозможным</b> на этапе типизации.</p>
+
+<table>
+  <thead><tr><th>#</th><th>Уровень</th><th>Технология</th><th>Failure mode</th></tr></thead>
+  <tbody>
+    <tr><td>1</td><td>DNS / reverse-proxy</td><td>Caddy 2 on-demand TLS, slug-based subdomain routing</td><td>Wrong tenant сайт даже не доходит до AX</td></tr>
+    <tr><td>2</td><td>Axum middleware</td><td><code>tenant_resolver</code>: Host → TenantId через moka LRU (5 min TTL)</td><td>Unknown slug → 404 без вызова handler'а</td></tr>
+    <tr><td>3</td><td>Request context</td><td><code>Extension&lt;TenantContext&gt;</code> + <code>TenantId(Uuid)</code> newtype</td><td>Handler не может accidentally подставить UserId — компилятор отрежет</td></tr>
+    <tr><td>4</td><td>Postgres RLS</td><td><code>SET LOCAL app.current_tenant_id = $1</code> в transaction + POLICY <code>rls_cms_pages_tenant_isolation</code></td><td>Даже если SQL забыл <code>WHERE tenant_id</code> — RLS отрезает чужие row'ы</td></tr>
+    <tr><td>5</td><td>DB schema</td><td><code>tenant_id NOT NULL</code> + composite indexes начинаются с <code>tenant_id</code> + partial unique</td><td>Cross-tenant writes physically impossible</td></tr>
+  </tbody>
+</table>
+
+<div class="callout">
+  <b>Critical caveat (ENTITY.md §3):</b> RLS с <code>SET LOCAL</code> требует PgBouncer в <code>transaction</code> pool mode. В <code>session</code> mode SET LOCAL держится между запросами и пул сжирается; в <code>statement</code> mode SET LOCAL вообще не работает. Без правильного PgBouncer — вся защита разваливается.
+</div>
+
+<h2>Read-path end-to-end (после миграции)</h2>
+<div class="arch-flow">  Browser GET https://pilot-tenant.spa.me/about
+         │
+         ▼
+  <b>Caddy</b> ── routes by tenant whitelist ──┐
+         │                                  │
+   pilot tenant?                       not whitelisted
+         │                                  │
+         ▼                                  ▼
+  <b>AX :7000</b>                            <b>SITE1 :3011 (Next.js)</b>
+         │                                   (existing path)
+         ▼
+  Axum router · GET /api/v1/cms/pages/public/by-slug/{slug}
+         │
+         ▼
+  <b>middleware/tenant_resolver</b> · Host → TenantId via moka cache
+         │
+         ▼
+  <b>handler/cms_handlers::get_published_by_slug</b>
+         │
+         ▼
+  <b>use_cases/cms/get_published_by_slug::execute(ctx, slug, locale)</b>
+         │
+         ▼
+  <b>infrastructure/persistence/PgCmsRepository::find_published_by_slug</b>
+         │
+         ▼
+  <b>with_tenant(pool, ctx, |tx|)</b>
+    │
+    ├─ SET LOCAL app.current_tenant_id = $tenant_id
+    │
+    └─ SELECT ... FROM cms_pages_v_active WHERE slug=$1 AND locale=$2
+         │                                   <span style="color:var(--gold);">↑ RLS filter</span>
+         ▼
+  Row → PublishedPage aggregate (map_row_to_aggregate)
+         │
+         ▼
+  Response: Json(CmsPageResponse)  ── Phase A
+            Leptos SSR HTML        ── Phase B
+         │
+         ▼
+  Browser получает финальный HTML/JSON</div>
+
+<h2>Cargo workspace structure</h2>
+<div class="arch-flow">  barbie/ax/
+  ├── Cargo.toml                  workspace root, resolver = "2"
+  ├── rust-toolchain.toml         stable-1.84 + rustfmt + clippy
+  ├── deny.toml                   cargo-deny: licenses, bans, advisories (§2.6, §19)
+  ├── .sqlx/                      offline query metadata (committed)
+  ├── migrations/
+  │   └── 0001_cms_pages_expand.sql   view + RLS + roles
+  │
+  ├── xtask/                      custom build automation
+  │   └── src/main.rs             architecture-check · magic-check · alloc-budget · query-budget
+  │
+  ├── crates/
+  │   ├── <b>common/</b>                 ── L0 (cross-crate types)
+  │   │   ├── src/tenant.rs       TenantId, TenantContext  (Copy, Hash)
+  │   │   ├── src/ids.rs          UserId, RequestId(ULID)
+  │   │   ├── src/error.rs        AppError + IntoResponse
+  │   │   └── src/page.rs         Page&lt;T&gt; (keyset cursor only)
+  │   │
+  │   ├── <b>domain/</b>                 ── L3 (pure logic, NO async deps)
+  │   │   └── src/cms/
+  │   │       ├── aggregate.rs    PublishedPage + invariants
+  │   │       ├── value_objects.rs PageSlug, PageLocale, PageStatus
+  │   │       └── blocks.rs       Block enum (6 types)
+  │   │
+  │   ├── <b>application/</b>            ── L2 (port traits, use cases)
+  │   │   ├── src/ports/cms.rs    trait CmsRepository
+  │   │   └── src/use_cases/cms/
+  │   │       └── get_published_by_slug.rs
+  │   │
+  │   ├── <b>infrastructure/</b>         ── L4 (adapters)
+  │   │   └── src/persistence/
+  │   │       ├── pool.rs         PgPool factory
+  │   │       ├── transaction.rs  with_tenant (SET LOCAL)
+  │   │       └── cms_pages_repo.rs   PgCmsRepository + row mapping
+  │   │
+  │   ├── <b>presentation/</b>           ── L1 (Axum + Leptos)
+  │   │   ├── src/middleware/
+  │   │   │   ├── tenant_resolver.rs   Host → TenantId
+  │   │   │   ├── request_id.rs        ULID injection
+  │   │   │   └── td_overrides.rs      ?td=base64 decoder
+  │   │   ├── src/api/
+  │   │   │   └── cms_handlers.rs      GET /api/v1/cms/pages/public/by-slug/{slug}
+  │   │   ├── src/leptos/              Phase B
+  │   │   │   ├── tenant_shell.rs      CSS-vars + Google Fonts URL builder
+  │   │   │   └── cms_page_component.rs Section[] → HTML (8 widget types)
+  │   │   └── src/app_state.rs         DI container
+  │   │
+  │   ├── <b>tenant/</b>                 helpers + middleware glue
+  │   └── <b>runtime/</b>                TaskSupervisor (§4.8) — для Phase 1+ background work
+  │
+  ├── apps/
+  │   └── server/
+  │       └── src/main.rs         tokio runtime + AppState + Axum bind :7000
+  │
+  ├── tests/
+  │   ├── integration/cms_pages_test.rs    testcontainers + RLS verify
+  │   └── fuzz/cms_tenant_isolation.rs     proptest 1M cross-tenant attempts
+  │
+  ├── docs/
+  │   ├── rfc/RFC-001-*.md        P1 Strategic
+  │   ├── adr/ADR-001-*.md        P2 Architectural
+  │   ├── plans/PLAN-001-*.md     P3 Execution
+  │   ├── validations/VAL-001-*.md P4 Verification
+  │   ├── perf/{baseline-*.txt, explain/}
+  │   ├── audit/AUDIT-cms_pages-*.md
+  │   ├── interop/{OWNERSHIP.md, CONTRACTS/, EVENTS/, ROLLBACK/}
+  │   └── releases/v0.1.0/{ROLLBACK.md, ROLLBACK_DRILL.md, DECISION.md}
+  │
+  └── ops/
+      ├── caddy/Caddyfile.snippets/cms-ax-pilots.caddy
+      └── observability/dashboards/cms-cutover-watch.json</div>
+
+<h2>Cross-stack interop (SITE1 ↔ AX)</h2>
+<p>Параллельная работа двух стеков на одной БД без явного контракта = shared-DB hell. <code>ENTITY.md §12.5</code> фиксирует ownership table; для <code>cms_pages</code>:</p>
+
+<div class="grid-2">
+  <div class="module-card">
+    <h4>SITE1 — canonical writer</h4>
+    <div class="props">
+      <span class="k">Role</span><span class="v">writer + admin reader</span>
+      <span class="k">DB role</span><span class="v">site1_admin_role (BYPASSRLS)</span>
+      <span class="k">Endpoints</span><span class="v">POST/PATCH/DELETE /v1/cms/pages/*</span>
+      <span class="k">Schema owner</span><span class="v">SITE1 packages/db/src/schema/cms-pages.ts</span>
+      <span class="k">Pgmq publish</span><span class="v">cms.page.published.v1 (после save)</span>
+    </div>
+  </div>
+  <div class="module-card">
+    <h4>AX — canonical reader (public)</h4>
+    <div class="props">
+      <span class="k">Role</span><span class="v">public reader only</span>
+      <span class="k">DB role</span><span class="v">ax_app_role (RLS enforced)</span>
+      <span class="k">Endpoints</span><span class="v">GET /api/v1/cms/pages/public/by-slug/{slug}</span>
+      <span class="k">Schema dep</span><span class="v">read-only через view cms_pages_v_active</span>
+      <span class="k">Pgmq subscribe</span><span class="v">cms.page.published.v1 (для local cache invalidation, Phase B)</span>
+    </div>
+  </div>
+</div>
+
+<h3>Schema delta — expand-only migration</h3>
+<pre>-- migrations/0001_cms_pages_expand.sql
+
+CREATE OR REPLACE VIEW cms_pages_v_active AS
+SELECT id, tenant_id, slug, locale, title, body, status,
+       meta_title, meta_description, cover_image_key,
+       published_at, created_at, updated_at
+FROM cms_pages
+WHERE status = 'published';
+
+ALTER TABLE cms_pages ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY rls_cms_pages_tenant_isolation
+  ON cms_pages
+  USING (tenant_id = current_setting('app.current_tenant_id', true)::uuid);
+
+CREATE ROLE site1_admin_role NOLOGIN;
+GRANT ALL ON cms_pages TO site1_admin_role;
+ALTER ROLE site1_admin_role BYPASSRLS;
+
+CREATE ROLE ax_app_role NOLOGIN;
+GRANT SELECT ON cms_pages_v_active TO ax_app_role;
+GRANT SELECT ON cms_pages TO ax_app_role;</pre>
+
+<h2>Fitness functions + budgets</h2>
+<div class="grid-3">
+  <div class="module-card">
+    <h4>Architecture</h4>
+    <div class="props">
+      <span class="k">cargo xtask</span><span class="v">architecture-check</span>
+      <span class="k">cargo-deny</span><span class="v">licenses + bans + advisories</span>
+      <span class="k">cargo-udeps</span><span class="v">nightly CI</span>
+      <span class="k">cargo-audit</span><span class="v">nightly + pre-release</span>
+      <span class="k">clippy</span><span class="v">-D warnings, custom lints</span>
+    </div>
+  </div>
+  <div class="module-card">
+    <h4>Performance</h4>
+    <div class="props">
+      <span class="k">p95 latency</span><span class="v">≤ 60ms (target)</span>
+      <span class="k">p99 latency</span><span class="v">≤ 100ms</span>
+      <span class="k">RSS / 100 RPS</span><span class="v">≤ 200MB</span>
+      <span class="k">Cold start</span><span class="v">≤ 200ms</span>
+      <span class="k">DB acquire p95</span><span class="v">≤ 5ms</span>
+    </div>
+  </div>
+  <div class="module-card">
+    <h4>Allocation</h4>
+    <div class="props">
+      <span class="k">Read heap allocs/req</span><span class="v">&lt; 500</span>
+      <span class="k">Write heap allocs/req</span><span class="v">&lt; 1500</span>
+      <span class="k">Bytes/req (read)</span><span class="v">&lt; 64 KB</span>
+      <span class="k">Async tasks/req</span><span class="v">&lt; 20</span>
+      <span class="k">TenantContext.clone()</span><span class="v">0 (Copy, не Clone)</span>
+    </div>
+  </div>
+</div>
+
+<h2>Observability stack</h2>
+<table>
+  <thead><tr><th>Signal</th><th>Stack</th><th>Destination</th><th>Mandatory tags</th></tr></thead>
+  <tbody>
+    <tr><td>Logs</td><td><code>tracing</code> + <code>tracing-subscriber</code> (JSON)</td><td>stdout → Loki / Better Stack</td><td>request_id, tenant_id, route, status, duration_ms</td></tr>
+    <tr><td>Traces</td><td><code>tracing-opentelemetry</code> + <code>opentelemetry-otlp</code></td><td>Tempo / Honeycomb</td><td>tenant, cms.page.slug, cms.page.locale</td></tr>
+    <tr><td>Metrics</td><td><code>metrics</code> + Prometheus exporter</td><td>/metrics → Prometheus → Grafana</td><td>stack=ax, route, status_class</td></tr>
+    <tr><td>Errors</td><td><code>sentry</code> + <code>sentry-tracing</code></td><td>Sentry project nas-ax</td><td>stack=ax, migration_phase, tenant_id, user_id, request_id</td></tr>
+    <tr><td>Health</td><td>internal handlers</td><td><code>/health</code> (process), <code>/health/ready</code> (DB+S3+queue)</td><td>—</td></tr>
+    <tr><td>Allocations</td><td><code>dhat-rs</code> in bench + production sampler</td><td>file dump → review</td><td>—</td></tr>
+  </tbody>
+</table>
+
+<h3>Alerts (Sentry / Grafana)</h3>
+<ul>
+  <li><code>nas_tenant_mismatch_total &gt; 0</code> — severity high, page on-call (any cross-tenant attempt is a bug)</li>
+  <li><code>p95_latency_ms{stack="ax"} &gt; 100</code> for 5 min — pause Phase B/C rollout</li>
+  <li><code>error_rate{stack="ax", status_class="5xx"} &gt; 1%</code> — auto-revert Caddy route to SITE1</li>
+  <li><code>nas_alloc_bytes_per_request &gt; baseline × 1.2</code> — issue auto-assigned, не emergency</li>
+  <li>Sentry release tag mismatch — block deploy</li>
+</ul>
+
+<h2>Why this design over alternatives</h2>
+<table>
+  <thead><tr><th>Решение</th><th>Альтернатива</th><th>Почему отвергнуто</th></tr></thead>
+  <tbody>
+    <tr><td>SQLx raw queries</td><td>SeaORM / Diesel</td><td>SeaORM ломает domain purity (active-record); Diesel slower compile + weaker async</td></tr>
+    <tr><td>Four-Layer (L1–L4)</td><td>Vertical-slice modules</td><td>VS легко вырождается в circular deps; four-layer compile-time enforce'нут Cargo workspace</td></tr>
+    <tr><td>Leptos via contract (§4.9)</td><td>Прямой Leptos coupling в presentation</td><td>Если Leptos health деградирует — переключаемся на admin-htmx или Dioxus БЕЗ переписывания application/domain</td></tr>
+    <tr><td>pgmq (Postgres queue)</td><td>Redis + apalis</td><td>Транзакционная enqueue в том же BEGIN; 0 новых инфра-зависимостей; «Redis не для очередей»</td></tr>
+    <tr><td>argon2 password hash</td><td>bcrypt</td><td>OWASP рекомендация; в Rust нет legacy-инерции bcrypt</td></tr>
+    <tr><td>rustls TLS</td><td>openssl</td><td>Supply-chain hygiene; no C deps; <code>cargo-deny</code> ban-list для openssl-sys</td></tr>
+    <tr><td>jemallocator (production)</td><td>system malloc</td><td>Fragmentation; introspection через <code>tikv-jemalloc-ctl</code>; matches <code>dhat-rs</code> baseline</td></tr>
+    <tr><td>panic = "abort" в release</td><td>panic = "unwind"</td><td>Failure isolation §10.5: panic в одном tokio runtime убивает только его; systemd рестартит binary</td></tr>
+    <tr><td>Keyset pagination only</td><td>OFFSET-based</td><td>OFFSET O(N) на больших таблицах; tenant-noisy-neighbor prone; xtask ban'ит</td></tr>
+  </tbody>
+</table>
+
+<div class="callout">
+  <b>Honest assessment:</b> AX = <i>exploration spec</i>, не migration commitment. Production-target — SITE1. AX даёт <b>compile-time</b> доказательства tenant-scoping, <b>1M fuzz</b> isolation verification и <b>perf headroom</b> для горячих read-path'ов; но не оправдывает миграцию без явного gate'а §13 Decision Criteria. Этот документ — план <i>в случае</i>, если бизнес-кейс материализуется. Дефолт: SITE1 живёт, AX наблюдается.
+</div>
+
+<div class="footer-note">
+  ТЗ синтезировано из <code>barbie/ax/ENTITY.md v3.3</code>, <code>barbie/ax/bridge/{01_STRUCTURE, 02_LOGIC, 03_TECHNICAL_SPEC, 04_DESIGN}.md</code>, <code>CLAUDE.md §M</code> (режимы), <code>barbie/ENTITY.md</code> (workspace canon). Не источник правды — спайн остаётся в ENTITY.md (<code>§0.1: при конфликте побеждает родитель</code>).
+</div>
+
+</section>
+
+</main>
+
+<script>
+  document.querySelectorAll('nav.tabs button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const tab = btn.dataset.tab;
+      document.querySelectorAll('nav.tabs button').forEach(b => b.classList.toggle('active', b === btn));
+      document.querySelectorAll('.panel').forEach(p => p.classList.toggle('active', p.id === tab));
+    });
+  });
+</script>
+
+</body>
+</html>

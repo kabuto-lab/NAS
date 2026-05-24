@@ -105,8 +105,7 @@ fn architecture_check() -> Result<()> {
                         || trimmed.contains(&format!("name = \"{f}\""))
                     {
                         violations.push(format!(
-                            "crate `{crate_name}` has forbidden dependency `{f}`: {}",
-                            trimmed
+                            "crate `{crate_name}` has forbidden dependency `{f}`: {trimmed}"
                         ));
                     }
                 }
@@ -138,7 +137,7 @@ fn magic_check() -> Result<()> {
     let macro_rules_re = regex::Regex::new(r"^\s*macro_rules!").unwrap();
     let tokio_spawn_re = regex::Regex::new(r"\btokio::spawn\b").unwrap();
     let std_thread_spawn_re = regex::Regex::new(r"\bstd::thread::spawn\b").unwrap();
-    let arc_rwlock_re = regex::Regex::new(r"Arc<RwLock<").unwrap();
+    let arc_rwlock_pat = "Arc<RwLock<";
 
     let walker = walkdir::WalkDir::new(&root).into_iter().filter_entry(|e| {
         let name = e.file_name().to_string_lossy();
@@ -194,7 +193,7 @@ fn magic_check() -> Result<()> {
                     lineno + 1
                 ));
             }
-            if arc_rwlock_re.is_match(line) {
+            if line.contains(arc_rwlock_pat) {
                 // Only warn — require comment with justification on adjacent line
                 eprintln!(
                     "WARN: {}:{}: Arc<RwLock<...>> — consider justification comment",

@@ -87,7 +87,7 @@ fn normalize_slug(raw: &str) -> Option<String> {
         return None;
     }
     let bytes = s.as_bytes();
-    let is_alnum = |b: u8| b.is_ascii_digit() || (b'a'..=b'z').contains(&b);
+    let is_alnum = |b: u8| b.is_ascii_digit() || b.is_ascii_lowercase();
     let is_mid = |b: u8| is_alnum(b) || b == b'-';
 
     if !is_alnum(bytes[0]) || !is_alnum(bytes[bytes.len() - 1]) {

@@ -10,11 +10,8 @@ publish.workspace = true
 name = "ax-server"
 path = "src/main.rs"
 
-[lints.clippy]
-all = { level = "warn", priority = -1 }
-pedantic = { level = "warn", priority = -1 }
-nursery = { level = "warn", priority = -1 }
-module_name_repetitions = "allow"
+[lints]
+workspace = true
 
 [dependencies]
 ax-common = { workspace = true }

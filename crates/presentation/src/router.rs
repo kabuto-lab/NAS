@@ -12,7 +12,6 @@ use crate::app_state::AppState;
 use crate::middleware::{request_id, tenant_resolver};
 
 /// Build full router with all routes and middleware.
-#[must_use]
 pub fn build_router(state: AppState) -> Router {
     Router::new()
         .route(

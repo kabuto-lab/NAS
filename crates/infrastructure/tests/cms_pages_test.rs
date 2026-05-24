@@ -48,6 +48,7 @@ impl TestContext {
         todo!("T14: testcontainers setup — needs 0000_baseline.sql import or programmatic CREATE TABLE")
     }
 
+    #[allow(clippy::unused_self)]
     fn ctx_for(&self, tenant_id: TenantId) -> TenantContext {
         TenantContext {
             tenant_id,

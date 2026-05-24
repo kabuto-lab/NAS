@@ -44,12 +44,12 @@ impl TenantResolver for PgTenantResolver {
         }
 
         if let Some(cached) = self.cache.get(&slug_key).await {
-            return Ok(cached.map(|c| build_context(c)));
+            return Ok(cached.map(build_context));
         }
 
         // sqlx::query_as (runtime checked; switch to query_as! after sqlx prepare)
         let row: Option<(Uuid, String, String)> = sqlx::query_as::<_, (Uuid, String, String)>(
-            r#"SELECT id, slug, status FROM tenants WHERE slug = $1 LIMIT 1"#,
+            r"SELECT id, slug, status FROM tenants WHERE slug = $1 LIMIT 1",
         )
         .bind(&slug_key)
         .fetch_optional(&self.pool)

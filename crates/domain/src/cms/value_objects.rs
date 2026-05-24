@@ -33,7 +33,7 @@ impl PageSlug {
         }
         let bytes = s.as_bytes();
 
-        let is_alnum_lower = |b: u8| b.is_ascii_digit() || (b'a'..=b'z').contains(&b);
+        let is_alnum_lower = |b: u8| b.is_ascii_digit() || b.is_ascii_lowercase();
         let is_mid_char = |b: u8| is_alnum_lower(b) || b == b'-' || b == b'/';
 
         if !is_alnum_lower(bytes[0]) || !is_alnum_lower(bytes[bytes.len() - 1]) {
@@ -73,9 +73,10 @@ impl From<PageSlug> for String {
 }
 
 /// Page locale. SITE1 поддерживает только `ru` и `en` (audit §4.1).
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum PageLocale {
+    #[default]
     Ru,
     En,
 }
@@ -95,12 +96,6 @@ impl PageLocale {
             Self::Ru => "ru",
             Self::En => "en",
         }
-    }
-}
-
-impl Default for PageLocale {
-    fn default() -> Self {
-        Self::Ru
     }
 }
 

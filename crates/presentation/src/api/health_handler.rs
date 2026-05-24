@@ -14,8 +14,7 @@ static STARTED_AT: AtomicU64 = AtomicU64::new(0);
 fn ensure_start_time() -> u64 {
     let now = SystemTime::now()
         .duration_since(UNIX_EPOCH)
-        .map(|d| d.as_secs())
-        .unwrap_or(0);
+        .map_or(0, |d| d.as_secs());
     let _ = STARTED_AT.compare_exchange(0, now, Ordering::SeqCst, Ordering::SeqCst);
     STARTED_AT.load(Ordering::SeqCst)
 }
@@ -35,8 +34,7 @@ pub struct HealthResponse {
 pub async fn liveness(State(_state): State<AppState>) -> Json<HealthResponse> {
     let now = SystemTime::now()
         .duration_since(UNIX_EPOCH)
-        .map(|d| d.as_secs())
-        .unwrap_or(0);
+        .map_or(0, |d| d.as_secs());
     let uptime = now.saturating_sub(ensure_start_time());
 
     // TODO: DB ping (когда AppState exposes pool ref)

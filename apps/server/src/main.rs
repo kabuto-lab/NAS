@@ -24,7 +24,7 @@ async fn main() -> Result<()> {
     let _ = dotenvy::dotenv();
 
     // 2. Init tracing
-    init_tracing()?;
+    init_tracing();
 
     tracing::info!("ax-server starting...");
 
@@ -70,7 +70,7 @@ async fn main() -> Result<()> {
     Ok(())
 }
 
-fn init_tracing() -> Result<()> {
+fn init_tracing() {
     let env_filter = EnvFilter::try_from_default_env()
         .unwrap_or_else(|_| EnvFilter::new("info,ax_=debug,sqlx=warn"));
 
@@ -78,10 +78,9 @@ fn init_tracing() -> Result<()> {
         .with(env_filter)
         .with(tracing_subscriber::fmt::layer().json())
         .init();
-
-    Ok(())
 }
 
+#[allow(clippy::cognitive_complexity)]   // cfg-conditional branches inflate metric
 async fn shutdown_signal() {
     let ctrl_c = async {
         tokio::signal::ctrl_c().await.expect("install ctrl_c handler");
@@ -99,7 +98,7 @@ async fn shutdown_signal() {
     let terminate = std::future::pending::<()>();
 
     tokio::select! {
-        _ = ctrl_c => tracing::info!("ctrl-c received, shutting down"),
-        _ = terminate => tracing::info!("SIGTERM received, shutting down"),
+        () = ctrl_c => tracing::info!("ctrl-c received, shutting down"),
+        () = terminate => tracing::info!("SIGTERM received, shutting down"),
     }
 }

@@ -124,9 +124,9 @@ impl IntoResponse for AppError {
     fn into_response(self) -> Response {
         let status = self.status_code();
         let body = match &self {
-            Self::NotFound(d) => serde_json::to_value(d).unwrap_or(serde_json::json!({
-                "code": "PAGE_NOT_FOUND"
-            })),
+            Self::NotFound(d) => serde_json::to_value(d).unwrap_or_else(|_| {
+                serde_json::json!({ "code": "PAGE_NOT_FOUND" })
+            }),
             Self::Validation(s) => serde_json::json!({ "code": "VALIDATION_FAILED", "message": s }),
             Self::Unauthorized => serde_json::json!({ "code": "NOT_AUTHENTICATED" }),
             Self::Forbidden(s) => serde_json::json!({ "code": "FORBIDDEN", "message": s }),
