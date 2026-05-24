@@ -1,0 +1,84 @@
+name: NaSV2 CI
+
+# AX•CMS (NaSV2) CI — separate from the parent ax/ workflow.
+# Scoped to NaSV2/** so unrelated parent-repo changes do not trigger it.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'NaSV2/**'
+      - '.github/workflows/nasv2-ci.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'NaSV2/**'
+      - '.github/workflows/nasv2-ci.yml'
+
+defaults:
+  run:
+    working-directory: NaSV2
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
+
+jobs:
+  fmt:
+    name: cargo fmt --check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+      - run: cargo fmt --all --check
+
+  clippy:
+    name: cargo clippy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: NaSV2
+      - run: cargo clippy --workspace --all-targets -- -D warnings
+
+  test:
+    name: cargo test --lib
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: NaSV2
+      # `--lib` keeps the fast lane fast; ignored integration tests
+      # (#[ignore = "needs Docker"]) require the split-pool fixture.
+      - run: cargo test --workspace --lib --no-fail-fast
+
+  xtask-gates:
+    name: cargo xtask hygiene gates
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: NaSV2
+      - run: cargo xtask architecture-check
+      - run: cargo xtask magic-check
+      - run: cargo xtask capability-coverage
+      - run: cargo xtask check-planning-refs
+
+  deny:
+    name: cargo deny check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: EmbarkStudios/cargo-deny-action@v2
+        with:
+          manifest-path: NaSV2/Cargo.toml
