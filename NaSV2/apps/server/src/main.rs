@@ -2,14 +2,16 @@
 //!
 //! Bootstrap contract (ENTITY §3, §4, §22.0):
 //! 1. Load `.env`, parse config (`crates/common::Config`).
-//! 2. Init `tracing-subscriber` (JSON) + OTLP → Tempo.
+//! 2. Init observability layers via `nas2_runtime::observability::init`
+//!    (JSON tracing + OTLP + Prometheus exporter).
 //! 3. Build three isolated PgPools — `http_pool`, `worker_pool`, `admin_pool`
 //!    (ENTITY §3.4.2 — HARD GATE: single shared pool is forbidden).
 //! 4. Run `nas2_pool_validator::ensure_transaction_mode` on each pool
 //!    (ENTITY §3.4.1 — HARD GATE: fail-fast if pgbouncer not in `transaction`).
 //! 5. Build `AppState` (Arc'ed repos, caches, registries).
 //! 6. Build Axum router (REST + Leptos SSR + `/health/*`).
-//! 7. Bind on `API_PORT` (default 8000); spawn signal handler for graceful shutdown.
+//! 7. Bind on `API_PORT` (default 8000); spawn signal handler for graceful shutdown
+//!    bounded by `SHUTDOWN_GRACE_SECS` (default 30 s) — ENTITY §29.
 //!
 //! ## TLA layers
 //! - **L1 Correctness** — pool-mode contract enforced before bind; impossible
@@ -17,8 +19,8 @@
 //! - **L2 Performance** — single allocation per pool; mimalloc as default.
 //! - **L3 Scalability** — pool isolation prevents admin/worker traffic from
 //!   eating http_pool budget under load.
-//! - **L4 Operability** — `/health/live`, `/health/ready`, `/health/pool` —
-//!   the last surfaces ENTITY §3.4.1 status to deploy pipeline.
+//! - **L4 Operability** — `/health/live`, `/health/ready`, `/health/pool`,
+//!   plus Prometheus on a separate port — feeds deploy pipeline and scraper.
 
 #![forbid(unsafe_code)]
 
@@ -56,6 +58,7 @@ struct BootConfig {
     http_pool_size: u32,
     worker_pool_size: u32,
     admin_pool_size: u32,
+    shutdown_grace: Duration,
 }
 
 impl BootConfig {
@@ -63,6 +66,10 @@ impl BootConfig {
         use std::env::var;
         let bind = var("BIND_ADDRESS").unwrap_or_else(|_| "0.0.0.0".into());
         let port: u16 = var("API_PORT").unwrap_or_else(|_| "8000".into()).parse()?;
+        let shutdown_secs: u64 = var("SHUTDOWN_GRACE_SECS")
+            .ok()
+            .and_then(|s| s.parse().ok())
+            .unwrap_or(30);
         Ok(Self {
             bind_addr: format!("{bind}:{port}").parse()?,
             http_url: var("DATABASE_URL_HTTP")
@@ -83,6 +90,7 @@ impl BootConfig {
                 .ok()
                 .and_then(|s| s.parse().ok())
                 .unwrap_or(5),
+            shutdown_grace: Duration::from_secs(shutdown_secs),
         })
     }
 }
@@ -96,22 +104,6 @@ struct AppState {
     http_pool: PgPool,
     worker_pool: PgPool,
     admin_pool: PgPool,
-}
-
-// `EnvFilter::try_new("info")` is statically valid, so the chained fallback
-// cannot fail at runtime. Refactored into `crates/runtime/observability.rs`
-// during P1 S1; this temporary `expect` survives only because boot is the
-// single call site.
-#[allow(clippy::expect_used)]
-fn init_tracing() {
-    use tracing_subscriber::{fmt, prelude::*, EnvFilter};
-    let env_filter = EnvFilter::try_from_env("LOG_LEVEL")
-        .or_else(|_| EnvFilter::try_new("info"))
-        .expect("EnvFilter init");
-    tracing_subscriber::registry()
-        .with(env_filter)
-        .with(fmt::layer().json())
-        .init();
 }
 
 async fn build_pool(label: &str, url: &str, size: u32) -> eyre::Result<PgPool> {
@@ -134,6 +126,23 @@ async fn validate_pool_mode(label: &str, pool: &PgPool) -> eyre::Result<()> {
 
 async fn health_live() -> &'static str {
     "ok"
+}
+
+/// Readiness probe — confirms the HTTP pool can answer a trivial query.
+/// Returns 503 on any failure; 200 with body `"ready"` otherwise.
+async fn health_ready(
+    axum::extract::State(state): axum::extract::State<Arc<AppState>>,
+) -> Result<&'static str, axum::http::StatusCode> {
+    match sqlx::query_scalar::<_, i32>("SELECT 1")
+        .fetch_one(&state.http_pool)
+        .await
+    {
+        Ok(_) => Ok("ready"),
+        Err(e) => {
+            tracing::error!(error = %e, "readiness probe: SELECT 1 failed");
+            Err(axum::http::StatusCode::SERVICE_UNAVAILABLE)
+        },
+    }
 }
 
 // `tracing::error!` expansions inflate cognitive complexity; loop body has
@@ -165,6 +174,7 @@ async fn health_pool(
 fn build_router(state: Arc<AppState>) -> Router {
     Router::new()
         .route("/health/live", get(health_live))
+        .route("/health/ready", get(health_ready))
         .route("/health/pool", get(health_pool))
         .with_state(state)
 }
@@ -172,7 +182,7 @@ fn build_router(state: Arc<AppState>) -> Router {
 #[tokio::main]
 async fn main() -> eyre::Result<()> {
     let _ = dotenvy::dotenv();
-    init_tracing();
+    let _obs_guard = nas2_runtime::observability::init("nas2-server")?;
 
     let cfg = BootConfig::from_env()?;
     tracing::info!(?cfg.bind_addr, "ax-cms · boot");
@@ -199,15 +209,33 @@ async fn main() -> eyre::Result<()> {
     // 4. Router
     let router = build_router(state);
 
-    // 5. Bind and serve, with graceful shutdown.
+    // 5. Bind and serve, with bounded graceful shutdown drain.
     let listener = tokio::net::TcpListener::bind(cfg.bind_addr).await?;
     tracing::info!(addr = %cfg.bind_addr, "listening");
 
+    let grace = cfg.shutdown_grace;
     axum::serve(listener, router)
-        .with_graceful_shutdown(shutdown_signal())
+        .with_graceful_shutdown(shutdown_signal_with_drain(grace))
         .await?;
 
     Ok(())
+}
+
+/// Waits for SIGINT/SIGTERM, then yields after at most `grace` so axum's
+/// internal drain is followed by an unconditional `force-kill` upper bound.
+// `tracing::info!`/`warn!` macros inflate cognitive complexity; body is
+// strictly linear (signal → drain → timeout → log).
+#[allow(clippy::cognitive_complexity)]
+async fn shutdown_signal_with_drain(grace: Duration) {
+    shutdown_signal().await;
+    tracing::info!(grace_secs = grace.as_secs(), "draining in-flight requests");
+    // Hand a hard deadline back to the runtime so a stuck handler cannot
+    // hold the process forever (ENTITY §29 — bounded shutdown).
+    let _ = tokio::time::timeout(grace, std::future::pending::<()>()).await;
+    tracing::warn!(
+        grace_secs = grace.as_secs(),
+        "shutdown drain expired — proceeding to abort"
+    );
 }
 
 // `cfg` branches + `tracing::info!` expansions inflate cognitive complexity;

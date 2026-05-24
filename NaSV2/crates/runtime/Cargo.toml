@@ -1,0 +1,27 @@
+[package]
+name = "nas2-runtime"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+nas2-common = { workspace = true }
+tokio = { workspace = true }
+tokio-util = { version = "0.7", features = ["rt"] }
+tracing = { workspace = true }
+thiserror = { workspace = true }
+
+# Observability — extracted from apps/server/main.rs (ENTITY §4)
+tracing-subscriber          = { workspace = true }
+tracing-opentelemetry       = { workspace = true }
+opentelemetry               = { workspace = true }
+opentelemetry-otlp          = { workspace = true }
+opentelemetry_sdk           = { workspace = true }
+metrics                     = { workspace = true }
+metrics-exporter-prometheus = { workspace = true }
+eyre                        = { workspace = true }
