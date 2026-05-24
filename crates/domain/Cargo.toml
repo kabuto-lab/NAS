@@ -1,0 +1,28 @@
+[package]
+name = "ax-domain"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lints.clippy]
+all = { level = "warn", priority = -1 }
+pedantic = { level = "warn", priority = -1 }
+nursery = { level = "warn", priority = -1 }
+module_name_repetitions = "allow"
+
+[dependencies]
+ax-common = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }
+garde = { workspace = true }
+regex = { workspace = true }
+thiserror = { workspace = true }
+# ZERO: no sqlx, no axum, no tokio. Enforced by xtask architecture-check.
+
+[dev-dependencies]
+rstest = { workspace = true }
+proptest = { workspace = true }
