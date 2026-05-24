@@ -132,6 +132,7 @@ ALTER POLICY rls_cms_pages_tenant_isolation ON cms_pages
 
 GRANT SELECT, INSERT, UPDATE ON cms_pages TO ax_app_role;
 GRANT SELECT, INSERT, UPDATE ON users TO ax_app_role;
+GRANT SELECT ON tenants TO ax_app_role;  -- needed for tenant_resolver query
 GRANT SELECT ON roles TO ax_app_role;
 GRANT SELECT ON capabilities TO ax_app_role;
 GRANT SELECT ON role_capabilities TO ax_app_role;

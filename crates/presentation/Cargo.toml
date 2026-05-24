@@ -48,3 +48,15 @@ optional = true
 [dev-dependencies]
 tokio = { workspace = true, features = ["test-util"] }
 rstest = { workspace = true }
+testcontainers = { workspace = true }
+testcontainers-modules = { workspace = true }
+jsonwebtoken = { workspace = true }
+tower = { workspace = true }
+serde_json = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }
+ax-infrastructure = { workspace = true }
+ax-common = { workspace = true }
+ax-domain = { workspace = true }
+ax-application = { workspace = true }
+http-body-util = "0.1"
