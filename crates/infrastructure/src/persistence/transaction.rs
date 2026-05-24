@@ -12,6 +12,14 @@
 use ax_common::{AppError, TenantContext};
 use sqlx::{PgPool, Postgres, Transaction};
 use std::future::Future;
+use std::pin::Pin;
+
+/// BoxFuture-style alias для return типа closure'а в `with_tenant`.
+///
+/// Mutable references in Rust are invariant в lifetime, поэтому generic `Fut`
+/// без HRTB не работает — нужен trait object с явным `'a`.
+pub type TxBoxFuture<'a, T> =
+    Pin<Box<dyn Future<Output = Result<T, AppError>> + Send + 'a>>;
 
 /// Execute a closure внутри транзакции с установленным tenant context.
 ///
@@ -25,24 +33,23 @@ use std::future::Future;
 /// # use ax_common::{TenantContext, AppError};
 /// # use ax_infrastructure::persistence::with_tenant;
 /// # async fn example(pool: PgPool, ctx: TenantContext) -> Result<(), AppError> {
-/// let count: i64 = with_tenant(&pool, &ctx, |tx| async move {
+/// let count: i64 = with_tenant(&pool, &ctx, |tx| Box::pin(async move {
 ///     sqlx::query_scalar::<_, i64>("SELECT count(*) FROM cms_pages_v_active")
 ///         .fetch_one(&mut **tx)
 ///         .await
 ///         .map_err(|e| AppError::Database(e.to_string()))
-/// })
-/// .await?;
+/// })).await?;
 /// # Ok(())
 /// # }
 /// ```
-pub async fn with_tenant<T, F, Fut>(
+pub async fn with_tenant<T, F>(
     pool: &PgPool,
     ctx: &TenantContext,
     f: F,
 ) -> Result<T, AppError>
 where
-    F: for<'a> FnOnce(&'a mut Transaction<'_, Postgres>) -> Fut,
-    Fut: Future<Output = Result<T, AppError>>,
+    F: for<'a> FnOnce(&'a mut Transaction<'_, Postgres>) -> TxBoxFuture<'a, T>,
+    T: Send + 'static,
 {
     let mut tx = pool
         .begin()

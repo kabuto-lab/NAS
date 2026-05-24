@@ -17,7 +17,7 @@ members = [
 [workspace.package]
 version = "0.1.0"
 edition = "2021"
-rust-version = "1.84"
+rust-version = "1.85"   # bumped из-за transitive deps requiring edition2024 (см. rust-toolchain.toml comment)
 license = "Proprietary"
 publish = false
 authors = ["Barbie/NAS team"]

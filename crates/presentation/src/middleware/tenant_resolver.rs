@@ -10,7 +10,6 @@
 
 use axum::{
     extract::{Request, State},
-    http::StatusCode,
     middleware::Next,
     response::{IntoResponse, Response},
 };
@@ -104,7 +103,7 @@ fn normalize_slug(raw: &str) -> Option<String> {
 /// (т.е. middleware не смог resolve), 403 если tenant suspended/archived.
 pub struct RequireTenant(pub TenantContext);
 
-#[axum::async_trait]
+// axum 0.8 использует native AFIT (Async Fn In Trait) — #[async_trait] не нужен.
 impl<S: Send + Sync> axum::extract::FromRequestParts<S> for RequireTenant {
     type Rejection = AppError;
 

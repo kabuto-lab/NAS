@@ -20,6 +20,7 @@ uuid = { workspace = true }
 chrono = { workspace = true }
 ulid = { workspace = true }
 thiserror = { workspace = true }
+eyre = { workspace = true }
 tracing = { workspace = true }
 axum = { workspace = true }
 http = { workspace = true }

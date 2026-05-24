@@ -66,23 +66,25 @@ impl CmsRepository for PgCmsRepository {
         let slug_s = slug.as_str().to_string();
         let locale_s = locale.as_str().to_string();
 
-        let row: Option<CmsPageRow> = with_tenant(&self.pool, ctx, |tx| async move {
-            sqlx::query_as::<_, CmsPageRow>(
-                r#"
-                SELECT
-                    id, tenant_id, slug, locale, title, body, status,
-                    meta_title, meta_description, cover_image_key,
-                    author_user_id, published_at, created_at, updated_at
-                FROM cms_pages_v_active
-                WHERE slug = $1 AND locale = $2
-                LIMIT 1
-                "#,
-            )
-            .bind(&slug_s)
-            .bind(&locale_s)
-            .fetch_optional(&mut **tx)
-            .await
-            .map_err(|e| AppError::Database(e.to_string()))
+        let row: Option<CmsPageRow> = with_tenant(&self.pool, ctx, move |tx| {
+            Box::pin(async move {
+                sqlx::query_as::<_, CmsPageRow>(
+                    r#"
+                    SELECT
+                        id, tenant_id, slug, locale, title, body, status,
+                        meta_title, meta_description, cover_image_key,
+                        author_user_id, published_at, created_at, updated_at
+                    FROM cms_pages_v_active
+                    WHERE slug = $1 AND locale = $2
+                    LIMIT 1
+                    "#,
+                )
+                .bind(&slug_s)
+                .bind(&locale_s)
+                .fetch_optional(&mut **tx)
+                .await
+                .map_err(|e| AppError::Database(e.to_string()))
+            })
         })
         .await?;
 

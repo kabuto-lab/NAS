@@ -436,7 +436,7 @@ mod tests {
     }
 
     #[test]
-    fn canvas_element_icon_box_uses_iconBox_field_name() {
+    fn canvas_element_icon_box_uses_icon_box_field_name() {
         let el = CanvasElement {
             id: "el-2".into(),
             kind: WidgetKind::IconBox,

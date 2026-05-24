@@ -15,7 +15,7 @@ module_name_repetitions = "allow"
 [dependencies]
 ax-common = { workspace = true }
 ax-application = { workspace = true }
-ax-infrastructure = { workspace = true }   # только для DI factory
+ax-infrastructure = { workspace = true }   # только для DI factory (Phase A); refactor с traits — Phase B
 ax-domain = { workspace = true }
 axum = { workspace = true }
 tower = { workspace = true }
@@ -31,6 +31,10 @@ moka = { workspace = true }
 async-trait = { workspace = true }
 uuid = { workspace = true }
 chrono = { workspace = true }
+# sqlx direct dep ТОЛЬКО для AppState::new(pool: PgPool) signature; logic идёт
+# через ax-application ports. ADR-001 D1 deviation — refactor через generic
+# constructor с trait bounds в Phase B.
+sqlx = { workspace = true }
 
 [features]
 default = []

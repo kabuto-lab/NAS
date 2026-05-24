@@ -16,15 +16,13 @@
 //! - I6: suspended tenant → 403
 //! - I8: 1M fuzz (separate test in tests/fuzz/, Phase 4)
 
-#![cfg(feature = "integration-tests")]
-
 use ax_application::ports::CmsRepository;
 use ax_common::{ids::RequestId, TenantContext, TenantId, TenantStatus};
 use ax_domain::cms::{PageLocale, PageSlug};
 use ax_infrastructure::persistence::PgCmsRepository;
 use chrono::Utc;
 use std::sync::Arc;
-use testcontainers::{runners::AsyncRunner, ContainerAsync};
+use testcontainers::ContainerAsync;
 use testcontainers_modules::postgres::Postgres;
 use uuid::Uuid;
 

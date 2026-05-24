@@ -1,4 +1,6 @@
 [toolchain]
-channel = "1.84"
+# ENTITY §4.1 говорит "stable 1.84+" — fix'нуто на stable из-за transitive deps
+# которые требуют edition2024 (Rust 1.85+). При смене подтянуть ENTITY.md.
+channel = "stable"
 components = ["rustfmt", "clippy"]
 profile = "minimal"
