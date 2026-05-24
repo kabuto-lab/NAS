@@ -11,10 +11,11 @@
 //! - 404 для cross-tenant, draft, archived, missing — same code `PAGE_NOT_FOUND`
 
 use async_trait::async_trait;
-use ax_application::ports::CmsRepository;
+use ax_application::ports::{CmsAdminRepository, CmsRepository};
 use ax_common::{AppError, NotFoundDetail, TenantContext, TenantId};
 use ax_domain::cms::{
-    blocks::Block, value_objects::PageStatus, PageLocale, PageSlug, PublishedPage,
+    blocks::Block, value_objects::PageStatus, DraftPage, NewDraftPage, PageLocale, PageSlug,
+    PublishedPage,
 };
 use chrono::{DateTime, Utc};
 use serde_json::Value as JsonValue;
@@ -112,6 +113,106 @@ fn map_row_to_aggregate(row: CmsPageRow) -> Result<PublishedPage, ax_domain::cms
     let body: Vec<Block> = serde_json::from_value(row.body).unwrap_or_default();
 
     PublishedPage::reconstitute(
+        row.id,
+        TenantId::new(row.tenant_id),
+        slug,
+        locale,
+        row.title,
+        body,
+        status,
+        row.meta_title,
+        row.meta_description,
+        row.cover_image_key,
+        row.author_user_id,
+        row.published_at,
+        row.created_at,
+        row.updated_at,
+    )
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Admin write path — CmsAdminRepository impl
+// ─────────────────────────────────────────────────────────────────────────────
+
+#[async_trait]
+impl CmsAdminRepository for PgCmsRepository {
+    #[tracing::instrument(
+        skip(self, draft),
+        fields(tenant_id = %ctx.tenant_id, slug = %draft.slug, locale = %draft.locale)
+    )]
+    async fn insert_draft(
+        &self,
+        ctx: &TenantContext,
+        draft: NewDraftPage,
+    ) -> Result<DraftPage, AppError> {
+        let tenant_uuid = ctx.tenant_id.0;
+        let slug_s = draft.slug.as_str().to_owned();
+        let locale_s = draft.locale.as_str().to_owned();
+        let title = draft.title;
+        let body_json = serde_json::to_value(&draft.body)
+            .map_err(|e| AppError::BadRequest(format!("invalid body json: {e}")))?;
+        let meta_title = draft.meta_title;
+        let meta_description = draft.meta_description;
+        let cover_image_key = draft.cover_image_key;
+        let author_user_id = draft.author_user_id;
+
+        let row: CmsPageRow = with_tenant(&self.pool, ctx, move |tx| {
+            Box::pin(async move {
+                sqlx::query_as::<_, CmsPageRow>(
+                    "INSERT INTO cms_pages \
+                     (tenant_id, slug, locale, title, body, status, \
+                      meta_title, meta_description, cover_image_key, author_user_id) \
+                     VALUES ($1, $2, $3, $4, $5, 'draft', $6, $7, $8, $9) \
+                     RETURNING id, tenant_id, slug, locale, title, body, status, \
+                               meta_title, meta_description, cover_image_key, \
+                               author_user_id, published_at, created_at, updated_at",
+                )
+                .bind(tenant_uuid)
+                .bind(&slug_s)
+                .bind(&locale_s)
+                .bind(&title)
+                .bind(&body_json)
+                .bind(&meta_title)
+                .bind(&meta_description)
+                .bind(&cover_image_key)
+                .bind(author_user_id)
+                .fetch_one(&mut **tx)
+                .await
+                .map_err(map_insert_error)
+            })
+        })
+        .await?;
+
+        map_row_to_draft(row)
+            .map_err(|e| AppError::Internal(eyre::eyre!("draft reconstitute: {e}")))
+    }
+}
+
+fn map_insert_error(e: sqlx::Error) -> AppError {
+    if let sqlx::Error::Database(db_err) = &e {
+        if let Some(code) = db_err.code() {
+            // 23505 — unique_violation (slug already exists per (tenant, slug, locale))
+            if code == "23505" {
+                return AppError::Conflict("page slug already exists".to_owned());
+            }
+            // 42501 — insufficient_privilege (RLS WITH CHECK rejected)
+            // 23514 — check_violation (catch-all CHECK constraint)
+            if code == "42501" || code == "23514" {
+                return AppError::TenantMismatch;
+            }
+        }
+    }
+    AppError::Database(e.to_string())
+}
+
+fn map_row_to_draft(row: CmsPageRow) -> Result<DraftPage, ax_domain::cms::draft::DraftError> {
+    let slug = PageSlug::parse(&row.slug)
+        .map_err(|_| ax_domain::cms::draft::DraftError::NotDraft(PageStatus::Archived))?;
+    let locale = PageLocale::parse(&row.locale).unwrap_or(PageLocale::Ru);
+    let status = PageStatus::parse(&row.status).unwrap_or(PageStatus::Archived);
+    let body: Vec<Block> = serde_json::from_value(row.body).unwrap_or_default();
+
+    DraftPage::reconstitute(
         row.id,
         TenantId::new(row.tenant_id),
         slug,

@@ -16,7 +16,8 @@ async-trait = { workspace = true }
 serde = { workspace = true }
 tracing = { workspace = true }
 thiserror = { workspace = true }
-# ZERO: no sqlx, no axum, no tokio (за исключением async_trait).
+moka = { workspace = true }
+# ZERO: no sqlx, no axum, no tokio (за исключением async_trait + moka future).
 
 [dev-dependencies]
 tokio = { workspace = true }

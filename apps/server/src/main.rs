@@ -29,13 +29,18 @@ async fn main() -> Result<()> {
     tracing::info!("ax-server starting...");
 
     // 3. Config (TODO: replace with proper config::Config builder)
+    // Default port 7710 — AX scheme '77xx' (отличает визуально от SITE1 '51xx').
     let port: u16 = std::env::var("API_PORT")
-        .unwrap_or_else(|_| "7000".to_string())
+        .unwrap_or_else(|_| "7710".to_string())
         .parse()
         .context("API_PORT must be a valid port number")?;
 
     let database_url = std::env::var("DATABASE_URL")
         .context("DATABASE_URL is required")?;
+
+    // JWT secret — shared с SITE1 .env per ADR-002 D1.
+    let jwt_secret = std::env::var("JWT_SECRET")
+        .context("JWT_SECRET is required (shared с SITE1 .env, see ADR-002 D1)")?;
 
     // 4. DB pool
     let pool_config = ax_infrastructure::persistence::PoolConfig {
@@ -51,7 +56,7 @@ async fn main() -> Result<()> {
     tracing::info!("database pool ready");
 
     // 5. AppState
-    let state = ax_presentation::AppState::new(pool);
+    let state = ax_presentation::AppState::new(pool, &jwt_secret);
 
     // 6. Router
     let app = ax_presentation::build_router(state);

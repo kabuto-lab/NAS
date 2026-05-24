@@ -5,7 +5,7 @@
 
 use async_trait::async_trait;
 use ax_common::{AppError, TenantContext};
-use ax_domain::cms::{PageLocale, PageSlug, PublishedPage};
+use ax_domain::cms::{DraftPage, NewDraftPage, PageLocale, PageSlug, PublishedPage};
 
 /// Repository contract для CMS pages.
 ///
@@ -37,4 +37,30 @@ pub trait CmsRepository: Send + Sync {
         slug: &PageSlug,
         locale: PageLocale,
     ) -> Result<PublishedPage, AppError>;
+}
+
+/// Admin write-path for CMS pages.
+///
+/// Phase A scope: single method (insert_draft). Update/publish/delete — follow-up RFCs.
+///
+/// **Invariants:**
+/// 1. **Tenant isolation:** implementation MUST run inside `with_tenant(...)` so that
+///    RLS POLICY `rls_cms_pages_tenant_isolation` validates `WITH CHECK` clause on
+///    INSERT. Spoofed `tenant_id` in payload — DB rejects (postgres error 23514).
+/// 2. **Status invariant:** new row inserted with `status='draft'` + `published_at IS NULL`.
+/// 3. **Uniqueness:** if `(tenant_id, slug, locale)` already exists — return
+///    `AppError::Conflict("page slug already exists")`.
+#[async_trait]
+pub trait CmsAdminRepository: Send + Sync {
+    /// Insert a new draft page. Returns reconstituted `DraftPage`.
+    ///
+    /// # Errors
+    /// - `AppError::Conflict` — unique constraint violation
+    /// - `AppError::TenantMismatch` — defensive (RLS WITH CHECK already caught)
+    /// - `AppError::Database` — other SQL errors
+    async fn insert_draft(
+        &self,
+        ctx: &TenantContext,
+        draft: NewDraftPage,
+    ) -> Result<DraftPage, AppError>;
 }

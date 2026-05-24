@@ -2,14 +2,14 @@
 
 use axum::{
     middleware,
-    routing::get,
+    routing::{get, post},
     Router,
 };
 use tower_http::trace::TraceLayer;
 
-use crate::api::{cms_handlers, health_handler, version_handler};
+use crate::api::{cms_admin_handlers, cms_handlers, health_handler, version_handler};
 use crate::app_state::AppState;
-use crate::middleware::{request_id, tenant_resolver};
+use crate::middleware::{auth, request_id, tenant_resolver};
 
 /// Build full router with all routes and middleware.
 pub fn build_router(state: AppState) -> Router {
@@ -18,9 +18,15 @@ pub fn build_router(state: AppState) -> Router {
             "/api/v1/cms/pages/public/by-slug/{slug}",
             get(cms_handlers::get_published_by_slug),
         )
+        .route(
+            "/api/v1/cms/pages/admin",
+            post(cms_admin_handlers::create_page_admin),
+        )
         .route("/api/v1/version", get(version_handler::handler))
         .route("/health", get(health_handler::liveness))
         .route("/health/ready", get(health_handler::readiness))
+        // Middleware stack: applied bottom-up (tracing first incoming, request_id, tenant, auth)
+        .layer(middleware::from_fn_with_state(state.clone(), auth::middleware))
         .layer(middleware::from_fn_with_state(state.clone(), tenant_resolver::middleware))
         .layer(middleware::from_fn(request_id::middleware))
         .layer(TraceLayer::new_for_http())
