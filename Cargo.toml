@@ -1,0 +1,134 @@
+# AX Workspace · NAS Rust alternative stack
+# See ENTITY.md §4 for stack rationale, §5 for crate layout.
+
+[workspace]
+resolver = "2"
+members = [
+    "crates/common",
+    "crates/domain",
+    "crates/application",
+    "crates/infrastructure",
+    "crates/presentation",
+    "crates/runtime",
+    "apps/server",
+    "xtask",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.84"
+license = "Proprietary"
+publish = false
+authors = ["Barbie/NAS team"]
+repository = "https://github.com/kabuto-lab/NAS"
+
+[workspace.dependencies]
+# Core async / HTTP
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "signal", "time", "fs", "sync"] }
+axum = { version = "0.8", features = ["macros", "http2"] }
+tower = { version = "0.5", features = ["util"] }
+tower-http = { version = "0.6", features = ["trace", "cors", "compression-gzip", "request-id", "limit", "timeout"] }
+hyper = "1.5"
+http = "1"
+
+# Database
+sqlx = { version = "0.8", default-features = false, features = ["postgres", "runtime-tokio-rustls", "uuid", "chrono", "json", "macros"] }
+
+# Serialization
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# Domain types
+uuid = { version = "1.11", features = ["v4", "v7", "serde"] }
+chrono = { version = "0.4", features = ["serde", "clock"], default-features = false }
+ulid = { version = "1.1", features = ["serde"] }
+
+# Validation
+garde = { version = "0.20", features = ["derive", "url", "regex"] }
+regex = "1.11"
+
+# Errors
+thiserror = "2"
+eyre = "0.6"
+
+# Observability
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
+tracing-opentelemetry = "0.28"
+opentelemetry = "0.27"
+opentelemetry-otlp = { version = "0.27", features = ["grpc-tonic"] }
+opentelemetry_sdk = "0.27"
+sentry = { version = "0.34", default-features = false, features = ["backtrace", "contexts", "panic", "reqwest", "rustls"] }
+sentry-tracing = "0.34"
+metrics = "0.24"
+metrics-exporter-prometheus = "0.16"
+
+# Async traits
+async-trait = "0.1"
+
+# Cache
+moka = { version = "0.12", features = ["future"] }
+
+# Security / sanitization
+ammonia = "4"
+base64 = "0.22"
+secrecy = "0.10"
+
+# Config
+config = "0.14"
+dotenvy = "0.15"
+
+# Image / file detection (Phase B)
+infer = "0.16"
+
+# Leptos (Phase B optional)
+leptos = { version = "0.7", features = ["ssr"] }
+leptos_axum = "0.7"
+
+# Server
+axum-server = { version = "0.7", features = ["tls-rustls"] }
+
+# Allocator
+tikv-jemallocator = "0.6"
+
+# Dev / test
+tokio-test = "0.4"
+testcontainers = "0.23"
+testcontainers-modules = { version = "0.11", features = ["postgres"] }
+proptest = "1.5"
+rstest = "0.23"
+
+# OpenAPI
+utoipa = { version = "5", features = ["axum_extras", "chrono", "uuid"] }
+utoipa-axum = "0.1"
+utoipa-swagger-ui = { version = "8", features = ["axum"] }
+
+# Internal crates (path-only; pin не нужен, single-version workspace)
+ax-common = { path = "crates/common" }
+ax-domain = { path = "crates/domain" }
+ax-application = { path = "crates/application" }
+ax-infrastructure = { path = "crates/infrastructure" }
+ax-presentation = { path = "crates/presentation" }
+ax-runtime = { path = "crates/runtime" }
+
+[profile.release]
+opt-level = 3
+lto = "thin"
+codegen-units = 1
+strip = "symbols"
+panic = "abort"   # §10.5 failure isolation: abort предпочтительнее в production
+
+[profile.dev]
+opt-level = 0
+debug = true
+
+[profile.bench]
+opt-level = 3
+lto = "thin"
+debug = true   # для dhat-rs heap profiling
+
+[profile.release-with-debug]
+inherits = "release"
+strip = false
+debug = true

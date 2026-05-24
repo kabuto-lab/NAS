@@ -1,0 +1,16 @@
+# rustfmt configuration · ENTITY.md §16.0
+edition = "2021"
+max_width = 100
+hard_tabs = false
+tab_spaces = 4
+newline_style = "Unix"
+use_small_heuristics = "Default"
+reorder_imports = true
+reorder_modules = true
+remove_nested_parens = true
+combine_control_expr = true
+match_arm_blocks = true
+match_block_trailing_comma = true
+trailing_comma = "Vertical"
+overflow_delimited_expr = false
+empty_item_single_line = true

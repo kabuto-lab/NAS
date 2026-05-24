@@ -1,0 +1,19 @@
+# clippy configuration · ENTITY.md §2.8 complexity budgets
+too-many-arguments-threshold = 7
+too-many-lines-threshold = 80
+cognitive-complexity-threshold = 15
+type-complexity-threshold = 250
+trivial-copy-size-limit = 32
+single-char-binding-names-threshold = 1
+
+# Avoid disallowed types
+disallowed-types = [
+    { path = "std::sync::Mutex", reason = "use tokio::sync::Mutex for async contexts" },
+    { path = "std::sync::RwLock", reason = "use tokio::sync::RwLock or parking_lot for sync contexts" },
+]
+
+# Avoid disallowed methods
+disallowed-methods = [
+    { path = "tokio::spawn", reason = "use TaskSupervisor.spawn(...) per ENTITY.md §4.8" },
+    { path = "std::thread::spawn", reason = "use tokio::task::spawn_blocking instead" },
+]
