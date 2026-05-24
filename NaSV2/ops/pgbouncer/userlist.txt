@@ -1,0 +1,5 @@
+; auth_file for PgBouncer (ENTITY §3.4.1)
+; Format: "username" "password"
+; Dev only; password is for AUTH_TYPE=trust completeness.
+; Production: rotate via secrets pipeline; never commit real creds.
+"postgres" "ax_dev_pw"

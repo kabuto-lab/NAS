@@ -1,0 +1,31 @@
+# AX•CMS · split-pool override · ENTITY §3.4.2
+#
+# Docker Compose merges this file with docker-compose.dev.yml automatically
+# when run from this directory.  It exists to keep the spine file
+# (docker-compose.dev.yml — ENTITY §12) untouched while wiring the §3.4.2
+# logical pool aliases into PgBouncer.
+#
+# Activation:
+#   docker compose -f docker-compose.dev.yml -f docker-compose.override.yml up -d
+#
+# Or simply (Compose auto-merges files named `docker-compose.override.yml`):
+#   docker compose -f docker-compose.dev.yml up -d
+#
+# Effect:
+#   • Mounts ops/pgbouncer/{pgbouncer,databases}.ini + userlist.txt read-only.
+#   • Replaces the edoburu/pgbouncer entrypoint so the mounted configs are
+#     honored instead of being overwritten by env-driven generation.
+#   • Pins the image tag so the pool-mode contract behavior is reproducible.
+
+services:
+  pgbouncer:
+    image: edoburu/pgbouncer:1.23.1
+    volumes:
+      - ./ops/pgbouncer/pgbouncer.ini:/etc/pgbouncer/pgbouncer.ini:ro
+      - ./ops/pgbouncer/databases.ini:/etc/pgbouncer/databases.ini:ro
+      - ./ops/pgbouncer/userlist.txt:/etc/pgbouncer/userlist.txt:ro
+    entrypoint: ["pgbouncer", "-d", "/etc/pgbouncer/pgbouncer.ini"]
+    command: []
+    # The base service in docker-compose.dev.yml already maps 6450:5432 and
+    # sets up `depends_on: postgres`, so this override only adds the
+    # configuration surface, not the lifecycle.
