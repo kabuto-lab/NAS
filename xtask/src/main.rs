@@ -33,6 +33,22 @@ enum Cmd {
     AllocBudget,
     /// EXPLAIN ANALYZE regression vs baseline per §11.6 (stub).
     QueryBudget,
+    /// Sign a dev/test JWT for manual smoke per ADR-002 D2. Outputs token to stdout.
+    SignJwt {
+        #[arg(long)]
+        user: String,
+        #[arg(long)]
+        tenant: String,
+        #[arg(long, default_value = "admin")]
+        role: String,
+        #[arg(long, default_value = "tenant")]
+        kind: String,
+        #[arg(long, default_value_t = 3600)]
+        ttl: i64,
+        /// Shared secret. If absent — reads JWT_SECRET env. Required.
+        #[arg(long)]
+        secret: Option<String>,
+    },
 }
 
 fn main() -> Result<()> {
@@ -43,6 +59,14 @@ fn main() -> Result<()> {
         Cmd::CheckPlanningRefs { commit } => check_planning_refs(&commit),
         Cmd::AllocBudget => alloc_budget(),
         Cmd::QueryBudget => query_budget(),
+        Cmd::SignJwt {
+            user,
+            tenant,
+            role,
+            kind,
+            ttl,
+            secret,
+        } => sign_jwt(&user, &tenant, &role, &kind, ttl, secret.as_deref()),
     }
 }
 
@@ -235,5 +259,54 @@ fn alloc_budget() -> Result<()> {
 
 fn query_budget() -> Result<()> {
     println!("query-budget: stub — TODO per ENTITY.md §11.6 (EXPLAIN ANALYZE regression)");
+    Ok(())
+}
+
+// ───────────────────────────────────────────────────────────────
+// sign-jwt — dev/test JWT signer
+// ───────────────────────────────────────────────────────────────
+
+#[derive(serde::Serialize)]
+struct DevClaims {
+    sub: String,
+    tenant_id: String,
+    role: String,
+    kind: String,
+    exp: i64,
+    iat: i64,
+}
+
+fn sign_jwt(
+    user: &str,
+    tenant: &str,
+    role: &str,
+    kind: &str,
+    ttl_sec: i64,
+    secret_arg: Option<&str>,
+) -> Result<()> {
+    let secret = secret_arg
+        .map(std::string::ToString::to_string)
+        .or_else(|| std::env::var("JWT_SECRET").ok())
+        .ok_or_else(|| eyre::eyre!("--secret or JWT_SECRET env required"))?;
+
+    let user_uuid = uuid::Uuid::parse_str(user)
+        .map_err(|e| eyre::eyre!("invalid --user uuid: {e}"))?;
+    let tenant_uuid = uuid::Uuid::parse_str(tenant)
+        .map_err(|e| eyre::eyre!("invalid --tenant uuid: {e}"))?;
+
+    let now = chrono::Utc::now().timestamp();
+    let claims = DevClaims {
+        sub: user_uuid.to_string(),
+        tenant_id: tenant_uuid.to_string(),
+        role: role.to_owned(),
+        kind: kind.to_owned(),
+        iat: now,
+        exp: now + ttl_sec,
+    };
+    let header = jsonwebtoken::Header::new(jsonwebtoken::Algorithm::HS256);
+    let key = jsonwebtoken::EncodingKey::from_secret(secret.as_bytes());
+    let token = jsonwebtoken::encode(&header, &claims, &key)
+        .map_err(|e| eyre::eyre!("encode failed: {e}"))?;
+    println!("{token}");
     Ok(())
 }
