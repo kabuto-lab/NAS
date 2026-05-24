@@ -23,6 +23,7 @@ use axum::{
 use serde::Serialize;
 use thiserror::Error;
 
+use crate::capability::Capability;
 use crate::tenant::TenantStatus;
 
 /// Структурированная деталь 404 NotFound — формат byte-for-byte SITE1.
@@ -59,6 +60,15 @@ pub enum AppError {
 
     #[error("forbidden: {0}")]
     Forbidden(String),
+
+    #[error("invalid token")]
+    InvalidToken,
+
+    #[error("token expired")]
+    TokenExpired,
+
+    #[error("missing capability: {0}")]
+    MissingCapability(Capability),
 
     #[error("tenant not resolved")]
     TenantNotResolved,
@@ -109,10 +119,14 @@ impl AppError {
         match self {
             Self::NotFound(_) => StatusCode::NOT_FOUND,
             Self::Validation(_) | Self::BadRequest(_) => StatusCode::BAD_REQUEST,
-            Self::Unauthorized | Self::TenantNotResolved => StatusCode::UNAUTHORIZED,
-            Self::Forbidden(_) | Self::TenantNotActive(_) | Self::TenantMismatch => {
-                StatusCode::FORBIDDEN
-            }
+            Self::Unauthorized
+            | Self::TenantNotResolved
+            | Self::InvalidToken
+            | Self::TokenExpired => StatusCode::UNAUTHORIZED,
+            Self::Forbidden(_)
+            | Self::TenantNotActive(_)
+            | Self::TenantMismatch
+            | Self::MissingCapability(_) => StatusCode::FORBIDDEN,
             Self::Conflict(_) => StatusCode::CONFLICT,
             Self::RateLimited => StatusCode::TOO_MANY_REQUESTS,
             Self::Internal(_) | Self::Database(_) => StatusCode::INTERNAL_SERVER_ERROR,
@@ -136,6 +150,12 @@ impl IntoResponse for AppError {
                 "status": s.as_str(),
             }),
             Self::TenantMismatch => serde_json::json!({ "code": "TENANT_OWNERSHIP_MISMATCH" }),
+            Self::InvalidToken => serde_json::json!({ "code": "INVALID_TOKEN" }),
+            Self::TokenExpired => serde_json::json!({ "code": "TOKEN_EXPIRED" }),
+            Self::MissingCapability(cap) => serde_json::json!({
+                "code": "MISSING_CAPABILITY",
+                "required": cap.as_key(),
+            }),
             Self::Conflict(s) => serde_json::json!({ "code": "CONFLICT", "message": s }),
             Self::BadRequest(s) => serde_json::json!({ "code": "BAD_REQUEST", "message": s }),
             Self::RateLimited => serde_json::json!({ "code": "RATE_LIMITED" }),
@@ -180,6 +200,29 @@ mod tests {
         assert!(AppError::TenantMismatch.is_security_event());
         assert!(!AppError::Unauthorized.is_security_event());
         assert!(!AppError::TenantNotResolved.is_security_event());
+    }
+
+    #[test]
+    fn auth_variants_status_codes() {
+        assert_eq!(
+            AppError::InvalidToken.status_code(),
+            StatusCode::UNAUTHORIZED
+        );
+        assert_eq!(
+            AppError::TokenExpired.status_code(),
+            StatusCode::UNAUTHORIZED
+        );
+        assert_eq!(
+            AppError::MissingCapability(crate::capability::Capability::PostsCreate).status_code(),
+            StatusCode::FORBIDDEN
+        );
+    }
+
+    #[test]
+    fn missing_capability_json_includes_required_key() {
+        let err = AppError::MissingCapability(crate::capability::Capability::PostsCreate);
+        let resp = err.into_response();
+        assert_eq!(resp.status(), StatusCode::FORBIDDEN);
     }
 
     #[test]

@@ -5,3 +5,4 @@
 //! `cargo xtask architecture-check`.
 
 pub mod cms;
+pub mod user;
