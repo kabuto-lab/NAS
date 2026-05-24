@@ -22,7 +22,7 @@ use ax_domain::cms::{PageLocale, PageSlug};
 use ax_infrastructure::persistence::PgCmsRepository;
 use chrono::Utc;
 use std::sync::Arc;
-use testcontainers::ContainerAsync;
+use testcontainers::{runners::AsyncRunner, ContainerAsync};
 use testcontainers_modules::postgres::Postgres;
 use uuid::Uuid;
 
@@ -38,14 +38,56 @@ struct TestContext {
 
 #[allow(dead_code)]
 impl TestContext {
+    /// Spin up Postgres container, apply schema + migration, seed test data.
+    ///
+    /// Per VAL-001 § Integration tests. Requires Docker daemon — fails fast
+    /// если Docker недоступен.
     async fn setup() -> Self {
-        // TODO Phase 4 (T14):
-        // 1. Spin up postgres:16 container via testcontainers
-        // 2. Apply migrations (0000_*.sql from SITE1 OR equivalent) + 0001_cms_pages_expand.sql
-        // 3. Seed tenant_a + tenant_b в `tenants` table
-        // 4. Seed minimum 2 cms_pages rows per tenant (published / draft / archived)
-        // 5. Return TestContext с pool + tenant ids
-        todo!("T14: testcontainers setup — needs 0000_baseline.sql import or programmatic CREATE TABLE")
+        // 1. Start Postgres container
+        let container = Postgres::default()
+            .start()
+            .await
+            .expect("postgres container start (Docker daemon required)");
+        let host = container.get_host().await.expect("container host");
+        let port = container
+            .get_host_port_ipv4(5432)
+            .await
+            .expect("container port mapping");
+        let url = format!("postgres://postgres:postgres@{host}:{port}/postgres");
+
+        // 2. Connect as superuser (без RLS enforcement в seed phase)
+        let pool = sqlx::postgres::PgPoolOptions::new()
+            .max_connections(5)
+            .acquire_timeout(std::time::Duration::from_secs(10))
+            .connect(&url)
+            .await
+            .expect("pool connect");
+
+        // 3. Apply baseline schema (минимальный subset SITE1 0000 для cms_pages
+        //    deps: tenants + users + cms_pages с indexes + FK)
+        apply_baseline_schema(&pool).await;
+
+        // 4. Apply 0001_cms_pages_expand.sql (view + RLS POLICY + 2 roles)
+        let migration_sql = include_str!("../../../migrations/0001_cms_pages_expand.sql");
+        sqlx::raw_sql(migration_sql)
+            .execute(&pool)
+            .await
+            .expect("apply 0001_cms_pages_expand.sql");
+
+        // 5. Seed 2 tenants + pages
+        let tenant_a = TenantId::new(Uuid::new_v4());
+        let tenant_b = TenantId::new(Uuid::new_v4());
+        seed_tenant(&pool, tenant_a, "tenant-a").await;
+        seed_tenant(&pool, tenant_b, "tenant-b").await;
+        seed_pages(&pool, tenant_a).await;
+        seed_pages(&pool, tenant_b).await;
+
+        Self {
+            _container: container,
+            pool,
+            tenant_a,
+            tenant_b,
+        }
     }
 
     #[allow(clippy::unused_self)]
@@ -57,6 +99,107 @@ impl TestContext {
             request_id: RequestId::new(),
             user_id: None,
         }
+    }
+}
+
+/// Minimal subset SITE1 0000_deep_gamma_corps.sql — только то, на что зависит
+/// cms_pages (tenants, users — FK targets — и cms_pages с composite indexes).
+/// Воспроизведено программно вместо import'а 600-строчного SITE1 SQL.
+#[allow(dead_code)]
+async fn apply_baseline_schema(pool: &sqlx::PgPool) {
+    sqlx::raw_sql(
+        r"
+        CREATE TABLE IF NOT EXISTS tenants (
+            id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+            slug        varchar(64) NOT NULL UNIQUE,
+            name        varchar(255) NOT NULL,
+            status      varchar(20) NOT NULL DEFAULT 'active',
+            contact_email varchar(320) NOT NULL DEFAULT 'noreply@example.com',
+            timezone    varchar(64) NOT NULL DEFAULT 'UTC',
+            locale      varchar(8) NOT NULL DEFAULT 'ru',
+            created_at  timestamp NOT NULL DEFAULT now(),
+            updated_at  timestamp NOT NULL DEFAULT now()
+        );
+
+        CREATE TABLE IF NOT EXISTS users (
+            id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+            email       varchar(320) NOT NULL UNIQUE,
+            created_at  timestamp NOT NULL DEFAULT now()
+        );
+
+        CREATE TABLE IF NOT EXISTS cms_pages (
+            id                  uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+            tenant_id           uuid NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+            slug                varchar(255) NOT NULL,
+            locale              varchar(8) NOT NULL DEFAULT 'ru',
+            title               varchar(500) NOT NULL,
+            body                jsonb NOT NULL DEFAULT '[]'::jsonb,
+            status              varchar(20) NOT NULL DEFAULT 'draft',
+            meta_title          varchar(255),
+            meta_description    text,
+            cover_image_key     varchar(500),
+            author_user_id      uuid REFERENCES users(id) ON DELETE SET NULL,
+            published_at        timestamp,
+            created_at          timestamp NOT NULL DEFAULT now(),
+            updated_at          timestamp NOT NULL DEFAULT now()
+        );
+
+        CREATE UNIQUE INDEX IF NOT EXISTS cms_pages_tenant_slug_locale_uniq
+            ON cms_pages (tenant_id, slug, locale);
+        CREATE INDEX IF NOT EXISTS cms_pages_tenant_status_idx
+            ON cms_pages (tenant_id, status);
+        CREATE INDEX IF NOT EXISTS cms_pages_tenant_published_idx
+            ON cms_pages (tenant_id, published_at DESC NULLS LAST)
+            WHERE status = 'published';
+        ",
+    )
+    .execute(pool)
+    .await
+    .expect("apply baseline schema");
+}
+
+#[allow(dead_code)]
+async fn seed_tenant(pool: &sqlx::PgPool, id: TenantId, slug: &str) {
+    sqlx::query(
+        "INSERT INTO tenants (id, slug, name, status) VALUES ($1, $2, $3, 'active')",
+    )
+    .bind(id.0)
+    .bind(slug)
+    .bind(format!("Test tenant {slug}"))
+    .execute(pool)
+    .await
+    .expect("seed tenant");
+}
+
+/// Seed 5 pages per tenant:
+/// - home (Ru, published)
+/// - about (Ru, published)
+/// - draft-page (Ru, draft) — для F10 test
+/// - old-page (Ru, archived) — для F10 test
+/// - secret (Ru, published) — для cross-tenant tests
+#[allow(dead_code)]
+async fn seed_pages(pool: &sqlx::PgPool, tenant_id: TenantId) {
+    let now = Utc::now();
+    let pages = [
+        ("home", "Home", "published", Some(now)),
+        ("about", "About", "published", Some(now)),
+        ("draft-page", "Draft", "draft", None),
+        ("old-page", "Old", "archived", Some(now)),
+        ("secret", "Secret", "published", Some(now)),
+    ];
+    for (slug, title, status, published_at) in pages {
+        sqlx::query(
+            "INSERT INTO cms_pages (tenant_id, slug, locale, title, status, published_at) \
+             VALUES ($1, $2, 'ru', $3, $4, $5)",
+        )
+        .bind(tenant_id.0)
+        .bind(slug)
+        .bind(title)
+        .bind(status)
+        .bind(published_at)
+        .execute(pool)
+        .await
+        .expect("seed page");
     }
 }
 
