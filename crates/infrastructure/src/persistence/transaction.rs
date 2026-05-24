@@ -56,11 +56,14 @@ where
         .await
         .map_err(|e| AppError::Database(format!("BEGIN failed: {e}")))?;
 
-    sqlx::query("SET LOCAL app.current_tenant_id = $1")
-        .bind(ctx.tenant_id.0)
+    // SET LOCAL не поддерживает параметризацию ($1) — используем set_config()
+    // SQL function, которая принимает параметры. Третий аргумент true = LOCAL scope.
+    // current_setting('app.current_tenant_id', true) в RLS POLICY читает это значение.
+    sqlx::query("SELECT set_config('app.current_tenant_id', $1, true)")
+        .bind(ctx.tenant_id.0.to_string())
         .execute(&mut *tx)
         .await
-        .map_err(|e| AppError::Database(format!("SET LOCAL failed: {e}")))?;
+        .map_err(|e| AppError::Database(format!("set_config failed: {e}")))?;
 
     let result = f(&mut tx).await?;
 

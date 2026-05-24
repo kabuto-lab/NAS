@@ -22,15 +22,19 @@ use ax_domain::cms::{PageLocale, PageSlug};
 use ax_infrastructure::persistence::PgCmsRepository;
 use chrono::Utc;
 use std::sync::Arc;
-use testcontainers::{runners::AsyncRunner, ContainerAsync};
+use testcontainers::{core::ImageExt, runners::AsyncRunner, ContainerAsync};
 use testcontainers_modules::postgres::Postgres;
 use uuid::Uuid;
 
 /// Shared test context: containerized Postgres + applied migrations + seeded
-/// tenants + pool.
+/// tenants + two pools (admin для seed, app для RLS-enforced reads).
 #[allow(dead_code)]
 struct TestContext {
     _container: ContainerAsync<Postgres>,
+    /// Postgres superuser pool — bypasses RLS. Используется для setup/seed.
+    admin_pool: sqlx::PgPool,
+    /// `ax_app_role` pool — NOBYPASSRLS, RLS POLICY enforce'ится. Это pool,
+    /// который PgCmsRepository должен использовать в production.
     pool: sqlx::PgPool,
     tenant_a: TenantId,
     tenant_b: TenantId,
@@ -43,8 +47,11 @@ impl TestContext {
     /// Per VAL-001 § Integration tests. Requires Docker daemon — fails fast
     /// если Docker недоступен.
     async fn setup() -> Self {
-        // 1. Start Postgres container
+        // 1. Start Postgres 16 container (matches ENTITY §4.2 + production).
+        // Default tag в testcontainers-modules — Postgres 11, slишком старый
+        // (security_invoker view option появился в 15).
         let container = Postgres::default()
+            .with_tag("16-alpine")
             .start()
             .await
             .expect("postgres container start (Docker daemon required)");
@@ -53,37 +60,65 @@ impl TestContext {
             .get_host_port_ipv4(5432)
             .await
             .expect("container port mapping");
-        let url = format!("postgres://postgres:postgres@{host}:{port}/postgres");
+        let admin_url = format!("postgres://postgres:postgres@{host}:{port}/postgres");
 
-        // 2. Connect as superuser (без RLS enforcement в seed phase)
-        let pool = sqlx::postgres::PgPoolOptions::new()
+        // 2. Admin pool — superuser, для DDL и seed
+        let admin_pool = sqlx::postgres::PgPoolOptions::new()
             .max_connections(5)
             .acquire_timeout(std::time::Duration::from_secs(10))
-            .connect(&url)
+            .connect(&admin_url)
             .await
-            .expect("pool connect");
+            .expect("admin pool connect");
 
-        // 3. Apply baseline schema (минимальный subset SITE1 0000 для cms_pages
-        //    deps: tenants + users + cms_pages с indexes + FK)
-        apply_baseline_schema(&pool).await;
+        // 3. Apply baseline schema (минимальный subset SITE1 0000)
+        apply_baseline_schema(&admin_pool).await;
 
         // 4. Apply 0001_cms_pages_expand.sql (view + RLS POLICY + 2 roles)
         let migration_sql = include_str!("../../../migrations/0001_cms_pages_expand.sql");
         sqlx::raw_sql(migration_sql)
-            .execute(&pool)
+            .execute(&admin_pool)
             .await
             .expect("apply 0001_cms_pages_expand.sql");
 
-        // 5. Seed 2 tenants + pages
+        // 5. Enable LOGIN на ax_app_role + установить test password — чтобы
+        //    мы могли подключиться как этот role и RLS enforce'илась.
+        sqlx::raw_sql(
+            "ALTER ROLE ax_app_role WITH LOGIN PASSWORD 'ax_test_pwd'",
+        )
+        .execute(&admin_pool)
+        .await
+        .expect("ALTER ROLE ax_app_role LOGIN");
+
+        // 6. Seed 2 tenants + pages через admin (BYPASSRLS)
         let tenant_a = TenantId::new(Uuid::new_v4());
         let tenant_b = TenantId::new(Uuid::new_v4());
-        seed_tenant(&pool, tenant_a, "tenant-a").await;
-        seed_tenant(&pool, tenant_b, "tenant-b").await;
-        seed_pages(&pool, tenant_a).await;
-        seed_pages(&pool, tenant_b).await;
+        seed_tenant(&admin_pool, tenant_a, "tenant-a").await;
+        seed_tenant(&admin_pool, tenant_b, "tenant-b").await;
+        seed_pages(&admin_pool, tenant_a).await;
+        seed_pages(&admin_pool, tenant_b).await;
+
+        // Add a slug that exists ONLY in tenant_a — для cross-tenant block test
+        sqlx::query(
+            "INSERT INTO cms_pages (tenant_id, slug, locale, title, status, published_at) \
+             VALUES ($1, 'tenant-a-only', 'ru', 'Only A', 'published', now())",
+        )
+        .bind(tenant_a.0)
+        .execute(&admin_pool)
+        .await
+        .expect("seed tenant-a-only");
+
+        // 7. App pool — connect as ax_app_role; RLS enforce'ится
+        let app_url = format!("postgres://ax_app_role:ax_test_pwd@{host}:{port}/postgres");
+        let pool = sqlx::postgres::PgPoolOptions::new()
+            .max_connections(5)
+            .acquire_timeout(std::time::Duration::from_secs(10))
+            .connect(&app_url)
+            .await
+            .expect("app pool connect (ax_app_role)");
 
         Self {
             _container: container,
+            admin_pool,
             pool,
             tenant_a,
             tenant_b,
@@ -109,6 +144,8 @@ impl TestContext {
 async fn apply_baseline_schema(pool: &sqlx::PgPool) {
     sqlx::raw_sql(
         r"
+        CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
         CREATE TABLE IF NOT EXISTS tenants (
             id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
             slug        varchar(64) NOT NULL UNIQUE,
@@ -117,8 +154,8 @@ async fn apply_baseline_schema(pool: &sqlx::PgPool) {
             contact_email varchar(320) NOT NULL DEFAULT 'noreply@example.com',
             timezone    varchar(64) NOT NULL DEFAULT 'UTC',
             locale      varchar(8) NOT NULL DEFAULT 'ru',
-            created_at  timestamp NOT NULL DEFAULT now(),
-            updated_at  timestamp NOT NULL DEFAULT now()
+            created_at  timestamptz NOT NULL DEFAULT now(),
+            updated_at  timestamptz NOT NULL DEFAULT now()
         );
 
         CREATE TABLE IF NOT EXISTS users (
@@ -139,9 +176,9 @@ async fn apply_baseline_schema(pool: &sqlx::PgPool) {
             meta_description    text,
             cover_image_key     varchar(500),
             author_user_id      uuid REFERENCES users(id) ON DELETE SET NULL,
-            published_at        timestamp,
-            created_at          timestamp NOT NULL DEFAULT now(),
-            updated_at          timestamp NOT NULL DEFAULT now()
+            published_at        timestamptz,
+            created_at          timestamptz NOT NULL DEFAULT now(),
+            updated_at          timestamptz NOT NULL DEFAULT now()
         );
 
         CREATE UNIQUE INDEX IF NOT EXISTS cms_pages_tenant_slug_locale_uniq
@@ -233,11 +270,12 @@ async fn published_page_returns_200_for_owning_tenant() {
 async fn cross_tenant_returns_not_found() {
     let ctx = TestContext::setup().await;
     let repo = PgCmsRepository::new(ctx.pool.clone());
-    // tenant_b requests slug that exists in tenant_a
+    // tenant_b requests slug 'tenant-a-only' который ТОЛЬКО у tenant_a.
+    // RLS POLICY должна отрезать → NotFound. Без RLS leaked бы tenant_a row.
     let result = repo
         .find_published_by_slug(
             &ctx.ctx_for(ctx.tenant_b),
-            &PageSlug::parse("home").unwrap(),
+            &PageSlug::parse("tenant-a-only").unwrap(),
             PageLocale::Ru,
         )
         .await;

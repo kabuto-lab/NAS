@@ -14,7 +14,12 @@
 -- 1. Read-only view — published-only срез для AX
 -- ─────────────────────────────────────────────────────────────────────────────
 
-CREATE OR REPLACE VIEW cms_pages_v_active AS
+-- security_invoker = true (Postgres 15+) — view runs с привилегиями caller,
+-- не owner'а. Без этого RLS POLICY на cms_pages не применилась бы (view owned
+-- by postgres = BYPASSRLS; caller's role игнорировался бы). С security_invoker
+-- — caller (ax_app_role) подчиняется POLICY.
+CREATE OR REPLACE VIEW cms_pages_v_active
+WITH (security_invoker = true) AS
 SELECT
     id,
     tenant_id,
