@@ -63,7 +63,7 @@ enum Cmd {
 fn main() -> Result<()> {
     let cli = Cli::parse();
     match cli.command {
-        Cmd::ArchitectureCheck => stub("architecture-check"),
+        Cmd::ArchitectureCheck => commands::architecture_check::run(),
         Cmd::MagicCheck => stub("magic-check"),
         Cmd::CapabilityCoverage => stub("capability-coverage"),
         Cmd::CheckPlanningRefs { .. } => stub("check-planning-refs"),

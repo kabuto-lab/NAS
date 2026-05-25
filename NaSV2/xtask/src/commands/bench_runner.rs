@@ -138,13 +138,12 @@ fn harvest_criterion_results(workspace_root: &Path) -> Result<Baseline> {
             |p| p.display().to_string().replace('\\', "/"),
         );
 
-        let raw = fs::read_to_string(path)
-            .wrap_err_with(|| format!("read {}", path.display()))?;
+        let raw = fs::read_to_string(path).wrap_err_with(|| format!("read {}", path.display()))?;
         // xtask is a cold-path CLI tool — the disallowed-methods lint
         // specifically permits serde_json in this category (clippy.toml).
         #[allow(clippy::disallowed_methods)]
-        let parsed: CriterionEstimates = serde_json::from_str(&raw)
-            .wrap_err_with(|| format!("parse {}", path.display()))?;
+        let parsed: CriterionEstimates =
+            serde_json::from_str(&raw).wrap_err_with(|| format!("parse {}", path.display()))?;
         benches.insert(bench_id, parsed.mean.point_estimate);
     }
     Ok(Baseline { benches })
@@ -152,8 +151,7 @@ fn harvest_criterion_results(workspace_root: &Path) -> Result<Baseline> {
 
 fn write_baseline(path: &Path, baseline: &Baseline) -> Result<()> {
     if let Some(parent) = path.parent() {
-        fs::create_dir_all(parent)
-            .wrap_err_with(|| format!("create {}", parent.display()))?;
+        fs::create_dir_all(parent).wrap_err_with(|| format!("create {}", parent.display()))?;
     }
     let json = serde_json::to_string_pretty(baseline).wrap_err("serialize baseline")?;
     fs::write(path, json).wrap_err_with(|| format!("write {}", path.display()))?;

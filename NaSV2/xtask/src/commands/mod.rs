@@ -3,5 +3,6 @@
 //! Each command lives in its own module so `main.rs` remains a thin
 //! dispatch surface (spine — ENTITY §12).
 
+pub mod architecture_check;
 pub mod bench_runner;
 pub mod pool_mode_check;

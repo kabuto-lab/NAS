@@ -1,0 +1,22 @@
+[package]
+name = "nas2-domain"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+nas2-common = { workspace = true }
+serde = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }
+garde = { workspace = true }
+thiserror = { workspace = true }
+# ZERO async/IO deps — enforced via xtask architecture-check.
+# `serde_json` and `regex` removed 2026-05-25 (AVTONOM P6) — they are not
+# allowed by the §2.6 domain whitelist. Domain validators that need a regex
+# get the compiled pattern injected by the application layer.
