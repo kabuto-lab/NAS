@@ -15,6 +15,7 @@ tokio = { workspace = true }
 tokio-util = { version = "0.7", features = ["rt"] }
 tracing = { workspace = true }
 thiserror = { workspace = true }
+uuid = { workspace = true }
 
 # Observability — extracted from apps/server/main.rs (ENTITY §4)
 tracing-subscriber          = { workspace = true }

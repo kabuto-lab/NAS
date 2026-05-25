@@ -14,6 +14,6 @@
 #![forbid(unsafe_code)]
 
 pub mod observability;
+pub mod supervisor;
 
-// pub struct TaskSupervisor { ... }
-// pub enum TaskCategory { ... }
+pub use supervisor::{DrainError, TaskCategory, TaskHandle, TaskSupervisor};

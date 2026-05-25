@@ -45,6 +45,7 @@ static GLOBAL: tikv_jemallocator::Jemalloc = tikv_jemallocator::Jemalloc;
 use std::{net::SocketAddr, sync::Arc, time::Duration};
 
 use axum::{routing::get, Router};
+use nas2_runtime::{TaskCategory, TaskSupervisor};
 use sqlx::postgres::{PgPool, PgPoolOptions};
 
 /// Boot config — minimal subset for the §3.4 pool contract.
@@ -104,6 +105,13 @@ struct AppState {
     http_pool: PgPool,
     worker_pool: PgPool,
     admin_pool: PgPool,
+    // ENTITY §4.8 — the only sanctioned `tokio::spawn` surface for HTTP-domain
+    // background work (e.g. request-bound fire-and-forget logging). Wired here
+    // for downstream handlers; drained alongside axum's graceful shutdown.
+    // Field is read by future handler crates (P1 wiring only); allow until
+    // the first consumer lands.
+    #[allow(dead_code)]
+    http_supervisor: TaskSupervisor,
 }
 
 async fn build_pool(label: &str, url: &str, size: u32) -> eyre::Result<PgPool> {
@@ -199,11 +207,13 @@ async fn main() -> eyre::Result<()> {
     validate_pool_mode("admin", &admin_pool).await?;
     tracing::info!("pool-mode contract satisfied on all three pools");
 
-    // 3. AppState
+    // 3. AppState (with HTTP-domain TaskSupervisor — ENTITY §4.8).
+    let http_supervisor = TaskSupervisor::new(TaskCategory::Http);
     let state = Arc::new(AppState {
         http_pool,
         worker_pool,
         admin_pool,
+        http_supervisor: http_supervisor.clone(),
     });
 
     // 4. Router
@@ -217,6 +227,13 @@ async fn main() -> eyre::Result<()> {
     axum::serve(listener, router)
         .with_graceful_shutdown(shutdown_signal_with_drain(grace))
         .await?;
+
+    // 6. Drain HTTP-domain supervised tasks within the same grace budget.
+    //    `drain` consumes the supervisor; the `AppState` clone (and any
+    //    handler-held clones) are dropped when `serve` returns above.
+    if let Err(e) = http_supervisor.drain(grace).await {
+        tracing::warn!(error = %e, "http supervisor drain exceeded budget");
+    }
 
     Ok(())
 }

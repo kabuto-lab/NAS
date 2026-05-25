@@ -68,7 +68,9 @@ pub fn init(service_name: &'static str) -> Result<ObservabilityGuard> {
     install_prometheus_if_configured()?;
 
     tracing::info!(service = service_name, "observability initialized");
-    Ok(ObservabilityGuard { otlp: otlp_provider })
+    Ok(ObservabilityGuard {
+        otlp: otlp_provider,
+    })
 }
 
 fn build_otlp_provider(service_name: &'static str, endpoint: &str) -> Result<TracerProvider> {
@@ -93,9 +95,7 @@ fn install_prometheus_if_configured() -> Result<()> {
         tracing::debug!("PROMETHEUS_METRICS_PORT not set — skipping Prometheus exporter");
         return Ok(());
     };
-    let port: u16 = port_raw
-        .parse()
-        .wrap_err("PROMETHEUS_METRICS_PORT parse")?;
+    let port: u16 = port_raw.parse().wrap_err("PROMETHEUS_METRICS_PORT parse")?;
     let addr: SocketAddr = ([0, 0, 0, 0], port).into();
     metrics_exporter_prometheus::PrometheusBuilder::new()
         .with_http_listener(addr)
