@@ -24,3 +24,8 @@ tokio      = { workspace = true }
 testcontainers         = { workspace = true }
 testcontainers-modules = { workspace = true }
 uuid                   = { workspace = true }
+criterion              = { workspace = true }
+
+[[bench]]
+name    = "pool_mode_check"
+harness = false

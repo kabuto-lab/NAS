@@ -34,7 +34,18 @@ impl PoolMode {
         matches!(self, Self::Transaction)
     }
 
-    fn from_str(raw: &str) -> Self {
+    /// Parse PgBouncer's `SHOW pool_mode` result into the typed enum.
+    ///
+    /// Tolerates surrounding whitespace and any case. Unknown values are
+    /// preserved verbatim (lower-cased) inside [`Self::Unknown`] so operators
+    /// can grep the trace.
+    ///
+    /// Deliberately inherent (not `impl FromStr`): the operation is total
+    /// (`Self::Unknown` absorbs every miss), so the `FromStr::Err` ceremony
+    /// would force callers to write `unwrap()` and lie about fallibility.
+    #[allow(clippy::should_implement_trait)]
+    #[must_use]
+    pub fn from_str(raw: &str) -> Self {
         match raw.trim().to_ascii_lowercase().as_str() {
             "transaction" => Self::Transaction,
             "session" => Self::Session,
