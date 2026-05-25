@@ -1,216 +1,190 @@
-# SESSION_LOG — AVTONOM 2026-05-25 ~13:30 (MONTH-BOOTSTRAP)
+# SESSION_LOG — AVTONOM 2026-05-25 (WP-PARITY EXPANSION)
 
-> Bootstrap of the docs/session-plans/avtonom-month-bootstrap.md
-> template. Single session, six phases, produced the entire artifact
-> set the next ~20 working days will consume.
+> Extends the morning's MONTH-BOOTSTRAP (commits b67302e..4d166fc)
+> with a deep WordPress-parity audit + 12-month master plan + Month 2
+> fully detailed (20 daily prompts).
 
 ## Outcome — one line per phase
 
 | Phase | Outcome |
 |---|---|
-| PF · Pre-flight + P0 | green · check cached, no V2/V3/V4 re-run needed (prior session green 3 h ago) |
-| Phase A · Deep audit | green · `AUDIT-2026-05-25.md` written (12 sections, 320 LOC) |
-| Phase B · Monthly roadmap | green · `ROADMAP-2026-05.md` written (5 goals, anti-goals, DAG, exit criteria) |
-| Phase C · Weekly detail | green · `WEEK-01..04.md` written (4 files) |
-| Phase D · Daily prompts | green · `daily/YYYY-MM-DD.md` × 20 written, all paste-ready (start with `AVTONOM:`) |
-| Phase E · Self-pacing harness | green · `HOW-TO-RUN.md` written (9 sections) |
-| Phase F · Final SESSION_LOG + commits | this file · 6 local commits, 0 push |
+| Gap analysis | green · `GAP-ANALYSIS-WP-PARITY.md` (28 functional areas scored; M1 ships ~6% of WP surface) |
+| 12-month master | green · `MASTER-ROADMAP-2026-2027.md` (5 phases · M1→M12 each with 5 goals · projected cumulative parity arc 6%→100%) |
+| Month skeletons | green · `MONTH-SKELETON-03..12.md` (10 files seeding each month's bootstrap) |
+| Month 2 detail | green · `AUDIT-2026-06-22.md` + `ROADMAP-2026-06.md` + `WEEK-05..08.md` |
+| Month 2 daily prompts | green · `daily/2026-06-22..2026-07-17.md` (20 ultradetailed prompts) |
+| Commits + log | green · 7 commits on `main`; 0 push |
 
-## Plan (detailed status)
+## Generated artifacts (in addition to morning bootstrap)
 
-### PF
-Pre-flight reads completed:
-- `ENTITY.md` (790 LOC) — re-confirmed §3.4 / §12 / §22 invariants
-- `CLAUDE.md` (76 LOC) — confirmed AVTONOM mode contract
-- `SESSION_LOG.md` (prior — overwritten by this file)
-- `docs/session-plans/avtonom-next-session.md` (prior prompt — referenced)
-- `memory/MEMORY.md` — missing (no memory yet for this project)
-- `apps/web/public/platform-blueprint.html` — n/a (NaSV2 has no apps/web)
-
-P0 verification (cached from 3 h ago):
-- V1 `cargo check --workspace --all-targets` → 0 errors, 3.23 s (cached)
-- V2/V3/V4 not re-run — no source changes since the prior AVTONOM's
-  final fmt/clippy/test sweep. Documented as "skipped because
-  guaranteed-green by prior session".
-
-Working day calendar (PF4):
-- W1: 2026-05-25 (Mon) → 2026-05-29 (Fri)
-- W2: 2026-06-01 → 2026-06-05
-- W3: 2026-06-08 → 2026-06-12
-- W4: 2026-06-15 → 2026-06-19
-- Total: 20 working days
-
-### Phase A
-`AUDIT-2026-05-25.md` covers A1 stack inventory (16 members; 9 stub /
-4 partial / 3 functional / 0 production), A2 migrations (1 file with
-missing rollback), A3 planning trail (6 orphans), A4 xtask gates (8/11
-stubs), A5 CI (silent-pass risk), A6 observability (Pyroscope + dhat
-missing), A7 security (no ammonia call yet; no TenantContext),
-A8 perf (no baseline.json), A9 open recommendations from prior
-SESSION_LOG (7 of 8 still open), A10 risk register (top 10), A11
-unfinished sessions, A12 capacity model.
-
-### Phase B
-`ROADMAP-2026-05.md` enumerates G1–G5 with §ENTITY anchors, anti-goals
-(image-pipeline / tantivy / edge-adapter / WASM / leptos / push / PR
-explicitly deferred), weekly breakdown table, ASCII dependency DAG
-(G1 ∥ G2 → G3 → G4 → G5), slack budget, 13-item binary exit-criteria
-checklist.
-
-### Phase C
-Four week files map ROADMAP B3 onto five-slot daily tables, each with
-entering dependencies, definition-of-done checklist, carry-over policy,
-and week-specific risks.
-
-### Phase D
-Twenty daily AVTONOM prompts. Every file:
-- starts with `AVTONOM:` on line 1 (paste-ready)
-- carries explicit `## CARRY-OVER from yesterday: (none)` slot
-- has SCOPE with P0 verification + day-specific P1..PN + Final
-- references the PRE-RESOLVED DEFAULTS / HARD STOPS / ZAPRESCHENO
-  blocks inherited from `avtonom-month-bootstrap.md`
-- ends with `SESSION_LOG.md` format reminder
-- includes explicit spine-mini-edit AUTHORIZATIONS only when needed
-  (e.g. W1 D1's `xtask/src/main.rs` route addition)
-
-W4 D5 (`daily/2026-06-19.md`) is the RETRO day — it both writes
-`RETRO-2026-06.md` and generates `docs/session-plans/avtonom-month-bootstrap-2026-07.md`
-so the next month is self-priming.
-
-### Phase E
-`HOW-TO-RUN.md` operator runbook. Includes optional PowerShell scheduler
-snippet but explicitly does NOT install it (operator opt-in only).
-
-## AI-Defaults applied
-
-| Decision | Choice | Reason |
-|---|---|---|
-| Skip V2/V3/V4 re-run | accept prior session's 3-h-old green | no source changes in NaSV2/ since then; full sweep would burn 10+ min of cache |
-| 20 working days = Mon-Fri | strict calendar | matches `PowerShell DayOfWeek` enumeration; no holiday awareness |
-| Goal count = 5 (not 3 nor 7) | 5 | matches capacity model (~3-5 days per goal × 4 weeks) |
-| Goal sequence (hex onion order) | G1∥G2→G3→G4→G5 | enforces ENTITY §2 dependency direction; presentation last |
-| Daily prompt language | Russian + English techs | matches prior AVTONOM prompt style + operator preference inferred from session-plan |
-| Daily prompt files start with `AVTONOM:` line 1 | yes (no markdown preamble) | CLAUDE.md says mode detection requires literal `AVTONOM:` start |
-| Bench `--no-run` only | strict | session-plan defaults + ENTITY §6.3 (baselines need quiet machine) |
-| `apps/web/public/platform-blueprint.html` | skipped read (n/a here) | NaSV2 has no apps/web; that file belongs to the parent ES project |
-| Spine-mini-edit AUTHORIZATIONS in daily prompts | only where strictly needed | W1 D1 (magic-check wiring), W1 D2 (planning-refs wiring), W4 D2 (capability-coverage wiring) — three single-line additions to `xtask/src/main.rs` |
-| `xxhash-rust` for capability hash | deferred | not in workspace deps; `DefaultHasher` is good enough for per-process cache key for now |
-
-## Skipped / Blocked
-
-| Item | Reason | Suggested follow-up |
-|---|---|---|
-| V2/V3/V4 explicit re-run | known-green from prior AVTONOM | next daily AVTONOM (W1 D1 on 2026-05-25) runs full P0 from scratch |
-| CI workflow file edit suggestion | spine-adjacent (outside NaSV2/) | suggestion captured in `daily/2026-05-27.md` P3.W2 for operator review |
-| Memory `MEMORY.md` bootstrap | no memory file exists yet | first useful preference / role insight from operator → save then |
-| Holiday-aware working day filter | AI cannot know holidays | operator manually skips; next-day's daily prompt absorbs via CARRY-OVER |
+| Type | Path | Count | LOC |
+|---|---|---:|---:|
+| Gap analysis | `docs/session-plans/GAP-ANALYSIS-WP-PARITY.md` | 1 | 193 |
+| Master roadmap | `docs/session-plans/MASTER-ROADMAP-2026-2027.md` | 1 | 329 |
+| Month skeletons | `docs/session-plans/MONTH-SKELETON-03..12.md` | 10 | 831 |
+| M2 monthly | `docs/session-plans/{AUDIT-2026-06-22,ROADMAP-2026-06}.md` | 2 | 341 |
+| M2 weekly | `docs/session-plans/WEEK-05..08.md` | 4 | 212 |
+| M2 daily | `docs/session-plans/daily/2026-06-22..07-17.md` | 20 | 5126 |
+| **Total** | | **38** | **~7000** |
 
 ## Commits made (local, not pushed)
 
 | Phase | SHA | Title |
 |---|---|---|
-| A | `b67302e` | chore(ax/audit): deep audit 2026-05-25 |
-| B | `99639dc` | docs(ax/roadmap): monthly plan 2026-05 (May 25 → Jun 19) |
-| C | `d1eb9a4` | docs(ax/weeks): WEEK-01..04 plans for 2026-05 month |
-| D | `5f444b5` | docs(ax/daily,PLAN-G1): daily AVTONOM prompts for 2026-05/06 (× 20) |
-| E | `dc10dde` | docs(ax/harness,PLAN-G1): HOW-TO-RUN operator runbook |
-| F | (this commit) | docs(ax/bootstrap-final,PLAN-G1): SESSION_LOG for month-bootstrap session |
+| Gap analysis | `b9497be` | gap analysis — current plan vs WordPress |
+| Master | `8eb0b2b` | 12-month master plan 2026-05..2027-04 |
+| Skeletons | `dc88732` | M3..M12 month skeletons |
+| M2 AUDIT+ROADMAP | `2bcf4e4` | Month 2 AUDIT + ROADMAP |
+| M2 WEEKs | `27861cc` | WEEK-05..08 plans for Month 2 |
+| M2 daily | `19fc549` | 20 daily prompts for Month 2 |
+| (this) | — | SESSION_LOG update |
 
-Total: 6 commits this session (matches Phase F target). All carry the
-`AI-Assisted: AX-ARCHITECT (Claude Opus 4.7)` trailer. No `git push`.
+All commits trailer `AI-Assisted: AX-ARCHITECT (Claude Opus 4.7)`.
+None pushed (operator action).
 
-## Generated artifacts
+## Gap analysis headlines
 
-| Type | Path | Count |
+- **28 functional areas of WP** mapped; M1 covers ~6%
+- **6 docs/areas at zero**: comments, themes, plugins, admin UI,
+  site-editor, search
+- **5 structural decisions** needed early (block editor frontend,
+  WASM sandbox, theme.json compat, spam strategy, edge cache
+  invalidation) — each scheduled into an ADR slot
+- **5 plan-omission corrections** promoted into MASTER:
+  1. early editor-strategy ADR in M3
+  2. RLS policy SQL in M2 alongside first repo (was implicit)
+  3. revisions+autosaves into M3 (was M5+)
+  4. nonces+CSRF into M2 (was unspecified)
+  5. backup story up to M10 (was M14+)
+
+## Master plan summary
+
+| Month | Theme | Cumulative WP-parity |
+|---:|---|---:|
+| M1 (current) | Foundation: gates + domain + first handler | 6% |
+| M2 | Postgres repos + JWT + RLS SQL + Posts CRUD | 14% |
+| M3 | Media pipeline + revisions + editor-strategy ADR | 21% |
+| M4 | Block library expansion (15 variants) + patterns + reusable | 31% |
+| M5 | Taxonomies + admin scaffolding kickoff | 40% |
+| M6 | Comments + moderation + spam scaffolding | 48% |
+| M7 | Admin: post editor + media browser (first demo) | 60% |
+| M8 | Themes API + bundled minimal + template hierarchy | 70% |
+| M9 | Extension API + WASM sandbox + SEO-basics plugin | 79% |
+| M10 | Caching L1+L2 + invalidation fan-out + backup | 86% |
+| M11 | Search (tantivy) + reindex pipeline | 92% |
+| M12 | WP importer + PGO/BOLT + edge + production deploy | 100% |
+
+12-month risk register: 7 risks logged in MASTER §risk-register
+(top: editor-frontend scope; WASM cold-start perf; theme.json
+compat unbounded; Dragonfly/NATS operational complexity).
+
+## Month 2 highlight (detailed)
+
+| Goal | Days | Key deliverable |
 |---|---|---|
-| Audit | `docs/session-plans/AUDIT-2026-05-25.md` | 1 |
-| Roadmap | `docs/session-plans/ROADMAP-2026-05.md` | 1 |
-| Weekly | `docs/session-plans/WEEK-01..04.md` | 4 |
-| Daily | `docs/session-plans/daily/YYYY-MM-DD.md` | 20 |
-| Harness | `docs/session-plans/HOW-TO-RUN.md` | 1 |
-| Final report | `SESSION_LOG.md` (root) | 1 |
-| **Total** |  | **28** |
+| G1 RLS + 5 migrations | W5 (5 days) | 0002..0008 + ADR-010 + VAL-005 RLS proptest 1000 rounds |
+| G2 PgPostRepository + with_tenant | W6 (5 days) | All 5 trait methods, single-RTT GUC contract, integration suite |
+| G3 JwtVerifier + login | W7 (5 days, D1-D4) | HmacJwtVerifier+Issuer, jwt_middleware, replay cache, /auth/login |
+| G4 Posts REST CRUD | W7 D5 + W8 D1-D3 | 5 endpoints all gated + CSRF + matrix test |
+| G5 ADRs + RETRO | W8 (D3-D5) | ADR-009 revisions, RFC-005 CSRF, RFC-006 JWT, RETRO, next-month bootstrap |
+
+Exit M2 cumulative WP-parity ~14%.
+
+## AI-Defaults applied
+
+| Decision | Choice | Reason |
+|---|---|---|
+| WP-parity scope | "WP core only" (excludes commerce/forms/advanced-SEO) | those become Year 2 plugins — keeps Y1 plan tight |
+| Master plan horizon | 12 months | matches reasonable single-engineer Y1 productivity |
+| Daily prompts depth | M1 + M2 in full ultradetail; M3-M12 month-skeleton only | each month's bootstrap regenerates that month's dailies — pre-writing M3+ would diverge from reality by M6 |
+| ADR slots in MASTER | scheduled at the month the decision binds | early ADRs prevent late re-architecture |
+| Block editor frontend | decision deferred to M3 ADR-010 | huge UX surface area; no advantage to choosing now |
+| WASM sandbox | decision deferred to M9 ADR-014 | first-party extensions can ship compile-time linked; WASM is a customer-installable-plugin requirement |
+| ax_csrf cookie HttpOnly=false | yes (double-submit needs JS read) | documented as anti-pattern-that-isn't; SameSite=Strict adds defence |
+| jti replay TTL = token TTL | yes | cache size bounded by capacity; expiry tied to claim |
+
+## Skipped / Blocked
+
+| Item | Reason | Suggested follow-up |
+|---|---|---|
+| M3-M12 daily prompts pre-written | by design — each month's bootstrap regenerates dailies | trust the system; if a future month wants pre-rendering, operator can run that month's bootstrap early |
+| `tower-governor` workspace dep verification | not currently confirmed in workspace `Cargo.toml` | RFC-006 notes — may need adding in M3 if not present |
+| Operator: push commits | AVTONOM never pushes | operator reviews + pushes |
 
 ## Recommendations for human review
 
-1. **Read `docs/session-plans/HOW-TO-RUN.md`** before tomorrow morning —
-   it's the operator's contract with the system.
-2. **Skim `docs/session-plans/AUDIT-2026-05-25.md`** — disagree with
-   any finding? Edit `daily/2026-05-25.md` and onwards before pasting.
-3. **Decide if the optional scheduler in `HOW-TO-RUN.md §6`** is right
-   for you. Default = manual paste each morning.
-4. **The 4 stub xtask gates in CI (`magic-check`, `capability-coverage`,
-   `check-planning-refs`) currently silently pass.** G1 (W1 D1–D3)
-   fixes 2 of them; capability-coverage waits on G4 → G5.P1.
-5. **Optionally `cargo run -p xtask -- bench-runner`** on a quiet
-   machine to seed `docs/perf/baseline.json` ahead of W4 D4 (G5.P3) —
-   would save that day a step.
+1. **Skim `GAP-ANALYSIS-WP-PARITY.md`** before reading anything else
+   — it sets the honest expectation that M1 is foundation, not a
+   shippable WP replacement.
+2. **Read `MASTER-ROADMAP-2026-2027.md` §risk-register** — adjust
+   priorities if any of the 7 risks have ground-truth that we don't
+   know.
+3. **Read `MONTH-SKELETON-07.md`** — it's the demo-milestone month
+   (first end-to-end editor flow); operator should preview the
+   theme/visual choices in advance.
+4. **Decide GAP-S2 (extension sandbox model) earlier** if Year-2
+   marketplace is on the roadmap — gating ADR-014 today rather than
+   M9 unblocks parallel plugin work.
+5. **The 5 structural ADRs in MASTER** should be reviewed by anyone
+   touching architecture before commits start landing on the listed
+   month.
+6. **`docs/session-plans/HOW-TO-RUN.md` §10 (added M1 W1 D3)** —
+   if not yet present, add it; describes the gate matrix that M2 will
+   change (capability-coverage becomes real W4 D2; check-planning-refs
+   wires into CI W5 D1).
+7. **MASTER-ROADMAP doesn't include Year 2** — by design (commerce,
+   forms, advanced SEO, real-time collab, plugin marketplace are
+   in §year-2-candidates). Year 2 master plan is for the M12 RETRO
+   to seed.
 
 ## Next action for operator
 
-Tomorrow morning (2026-05-26 onward, actually starting **today** if
-operator has bandwidth):
+For Month 1 (currently running):
+> Continue with `docs/session-plans/daily/2026-05-25.md` already
+> generated this morning; sessions through `2026-06-19.md` are
+> ready.
 
-> Open Claude Code at
-> `F:\Users\a\Documents\_DEV\Tran\ES\barbie\AX\NaSV2`, read
-> `docs/session-plans/daily/2026-05-25.md`, paste its full content as
-> the opening message. Wait for the session to complete (~30–60 min).
-> Verify `SESSION_LOG.md` is green. Then close.
+For Month 2:
+> When `RETRO-2026-06.md` lands on 2026-06-19 W4 D5, the
+> next-month bootstrap will reference `MONTH-SKELETON-03.md` as its
+> seed. Operator pastes the bootstrap as opening message on
+> 2026-06-22 morning. NOTE: today's session has ALREADY pre-generated
+> M2's full daily set (`daily/2026-06-22..07-17.md`) — operator may
+> either:
+>   - skip the M2 bootstrap (use pre-generated dailies directly), or
+>   - run the M2 bootstrap anyway (it will reconcile reality vs
+>     forecast and may shift some scope).
+> Default recommendation: skip the bootstrap; the pre-generated
+> dailies are an honest forecast and the AVTONOM running them will
+> still adapt locally.
 
-Repeat each working day with the corresponding date file. On 2026-06-19
-the RETRO + next-month bootstrap appear automatically; on 2026-06-22
-paste `docs/session-plans/avtonom-month-bootstrap-2026-07.md`.
+For Months 3-12:
+> Trust the monthly-bootstrap cycle. Each month's W4 D5 RETRO
+> generates the next month's bootstrap; bootstrap reads the matching
+> MONTH-SKELETON + RETRO §7 as seed; bootstrap day produces
+> AUDIT + ROADMAP + WEEK + 20 daily prompts.
 
 ## Working tree at end of session
 
 ```
-git status --short  (NaSV2-relative; parent-repo entries marked unrelated)
+git status --short
  M ../ENTITY.md                                       # parent — unrelated
  M ../ops/caddy/Caddyfile.snippets/cms-ax-pilots.caddy # parent — unrelated
  M "../\320\242\320\227.html"                          # parent — unrelated
-?? .env.example                                       # pre-existing untracked
-?? .gitignore                                         # pre-existing untracked
-?? BOTTLENECKS.html                                   # pre-existing untracked
-?? CLAUDE.md                                          # spine — never committed by AVTONOM
-?? Cargo.toml                                         # spine — never committed by AVTONOM
-?? ENTITY.md                                          # spine — never committed by AVTONOM
-?? README.md                                          # pre-existing untracked
-?? apps/cli/                                          # pre-existing untracked
-?? apps/server/Cargo.toml                             # pre-existing untracked (spine-adjacent)
-?? clippy.toml                                        # spine — never committed by AVTONOM
-?? crates/common/                                     # pre-existing untracked stub (this commit added nothing here)
-?? crates/edge-adapter/                               # pre-existing untracked stub
-?? crates/extension-api/                              # pre-existing untracked stub
-?? crates/image-pipeline/                             # pre-existing untracked stub
-?? crates/presentation/                               # pre-existing untracked stub
-?? crates/search-engine/                              # pre-existing untracked stub
-?? crates/tenant/                                     # pre-existing untracked stub
-?? crates/theme-api/                                  # pre-existing untracked stub
-?? deny.toml                                          # spine — never committed by AVTONOM
-?? docker-compose.dev.yml                             # spine — never committed by AVTONOM
-?? docs/perf/                                         # pre-existing untracked (baseline.json comes W4 D4)
-?? docs/security/                                     # pre-existing untracked (SEC-002/003 come W4 D4)
-?? extensions/                                        # pre-existing untracked
-?? rust-toolchain.toml                                # spine — never committed by AVTONOM
-?? rustfmt.toml                                       # spine — never committed by AVTONOM
-?? themes/                                            # pre-existing untracked
+?? <pre-existing untracked spine + stubs — unchanged from morning>
 ?? ../STACK_COMPARISON.html                           # parent — unrelated
 ?? ../prototype-dashboard/                            # parent — unrelated
 ```
 
-**Interpretation:** identical pattern to the prior AVTONOM session.
-Bootstrap is docs-only by design — no source code changes — so the
-untracked set is unchanged from the morning's session.
+No production code changes; this entire session is docs-only.
 
 ## Time budget
 
-- **Started:** 2026-05-25 ~13:30 (right after the prior AVTONOM closed)
-- **Ended:**   2026-05-25 14:51
-- **Wall time:** ~80 min (well under the Phase A 90-min cap)
-- **Phases attempted:** 7 (PF + A + B + C + D + E + F)
-- **Phases green:** 7
-- **Phases partial:** 0
-- **Hard stops:** 0
-- **SKIPs:** V2/V3/V4 explicit re-run (documented above)
-- **Commits made:** 6
-- **Push attempts:** 0 (forbidden in AVTONOM — operator-only)
+- Wall time: substantial (≈ 4-5 h cumulative across morning bootstrap
+  + this expansion)
+- Output: ~7000 LOC across 38 new docs
+- 7 new commits on top of morning's 6 (total 13 commits today in
+  the WP-parity track)
+- Zero `git push`
+- Zero spine-file edits
+- Zero new workspace `Cargo.toml` deps
