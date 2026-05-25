@@ -18,7 +18,16 @@
 
 #![cfg(test)]
 // Tests intentionally `expect`/`panic` on failure — that *is* the failure mode.
-#![allow(clippy::expect_used, clippy::panic, clippy::unwrap_used)]
+// Raw `tokio::spawn` is used in `test_concurrent_load_isolation` to simulate
+// arbitrary external concurrent traffic against the pool — the production
+// callers themselves go through `TaskSupervisor`, but the test models the
+// pool's behavior under any caller mix.
+#![allow(
+    clippy::expect_used,
+    clippy::panic,
+    clippy::unwrap_used,
+    clippy::disallowed_methods
+)]
 
 use std::time::Duration;
 
@@ -130,4 +139,29 @@ async fn test_detect_pool_mode_returns_statement_when_configured() {
     let stack = start_stack("statement").await;
     let mode = detect_pool_mode(&stack.pool).await.expect("detect mode");
     assert_eq!(mode, PoolMode::Statement);
+}
+
+/// 50 concurrent `ensure_transaction_mode` calls must not serialize on the
+/// `PgPool`. We give the pool only 2 connections and a 2 s acquire timeout —
+/// pgbouncer's transaction mode plus sqlx's connection multiplexing should
+/// still finish the burst well under the per-task budget.
+///
+/// Closes recommendation R1 from `SESSION_LOG.md` (AVTONOM 2026-05-25).
+/// ENTITY §3.4.2 pool isolation; §7 tail-latency invariants.
+#[tokio::test]
+#[ignore = "needs Docker"]
+async fn test_concurrent_load_isolation() {
+    let stack = start_stack("transaction").await;
+    let mut handles = Vec::with_capacity(50);
+    for _ in 0..50 {
+        let pool = stack.pool.clone();
+        handles.push(tokio::spawn(
+            async move { ensure_transaction_mode(&pool).await },
+        ));
+    }
+    for h in handles {
+        h.await
+            .expect("task panicked")
+            .expect("ensure_transaction_mode under concurrent load");
+    }
 }
