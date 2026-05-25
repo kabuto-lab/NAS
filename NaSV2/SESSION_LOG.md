@@ -1,202 +1,250 @@
-# SESSION_LOG — AVTONOM 2026-05-25
+# SESSION_LOG — AVTONOM 2026-05-25 10:01
 
-> AX•ARCHITECT autonomous session for AX•CMS (NaSV2).
-> Scope authorized by user opening message ("AVTONOM: AX•CMS · продолжение refoundation").
->
-> **Started:** 2026-05-25 00:44 +03:00
-> **Ended:**   2026-05-25 01:12 +03:00 (≈ 28 min)
-> **Mode:**    AVTONOM (CLAUDE.md §22.3 — no permission prompts)
-> **Branch:**  main (no `git push`; user pushes manually)
-
----
+> Continuation of AX-ARCHITECT refoundation; phases P0–P7 of the
+> `docs/session-plans/avtonom-next-session.md` prompt template. Builds on
+> commits `d149811..3325dc5` from the previous AVTONOM session.
 
 ## Outcome — one line per phase
 
-- **P0** verification gate green                  · commit `d149811`
-- **P1** runtime observability + /health/ready    · commit `72a82d6`
-- **P2** pool-validator integration tests         · commit `cbfd438`
-- **P3** pgbouncer split-pool infra (non-spine)   · commit `594ee04`
-- **P4** xtask pool-mode-check + bench-runner     · commit `3ff5f36`
-- **P5** VAL/PLAN/ROLLBACK planning artifacts     · commit `c2a8df3`
-- **P6** NaSV2 CI + nightly bench workflows       · commit `fd11119`
-- **P7** SESSION_LOG.md final report              · this commit
-
-Verification snapshot at end-of-session:
-- `cargo check --workspace` — clean, 1.65 s incremental.
-- `cargo clippy --workspace --all-targets -- -D warnings` — clean, 0.86 s.
-
----
+| Phase | Outcome |
+|---|---|
+| P0 · Verification gate | green · check + fmt + clippy + lib tests |
+| P1 · TaskSupervisor | green · 3/3 unit tests; wired into AppState |
+| P2 · pgmq adapter | green · port + adapter + migration + #[ignore] integration |
+| P3 · First criterion bench | green · `pool_mode_from_str` compiles under `cargo bench --no-run` |
+| P4 · Close R1/R2/R3/R4 | green · concurrent test + pgbouncer Dockerfile + VAL-004 + PLAN-004 |
+| P5 · capability-coverage real impl | **SKIP** · `crates/presentation/src` has no handlers yet |
+| P6 · architecture-check real impl | green · `cargo run -p xtask -- architecture-check` returns ok with 1 documented warning |
+| P7 · SESSION_LOG + commits | green · 5 local commits + this report |
 
 ## Plan (detailed status)
 
 ### P0 · Verification gate
-- [x] **V1** `cargo check --workspace` — green on first run, 0 errors, 22.81 s
-  - log: `docs/session-logs/avtonom-20260525-cargo-check.log` (gitignored)
-- [x] **V2** `cargo fmt --all` — applied; rustfmt.toml has nightly-only keys
-  that warn on stable but do not block (no files changed)
-- [x] **V3** `cargo clippy --workspace --all-targets -- -D warnings` — green
-  after 6 targeted fixes (iter 2/5)
-  - log: `docs/session-logs/avtonom-20260525-clippy.log` (gitignored)
-- [x] **V4** `cargo metadata --no-deps --offline` — green; workspace
-  integrity confirmed
-  - log: `docs/session-logs/avtonom-20260525-metadata.json` (committed)
+- V1 `cargo check --workspace --all-targets` → 0 errors. Log gitignored
+  under `docs/session-logs/avtonom-20260525-cargo-check.log`
+- V2 `cargo fmt --all` → applied (rustfmt unstable-key warnings expected,
+  matches prior session note)
+- V3 `cargo clippy --workspace --all-targets -- -D warnings` → 0 warnings
+- V4 `cargo test --workspace --lib --no-fail-fast` → 2 passed (pool-validator
+  parses_known_modes / case_and_whitespace_tolerant), 0 failed
 
-### P1 · Server wiring
-- [x] **S1** `crates/runtime/src/observability.rs` (NEW) — JSON tracing +
-  optional OTLP (`OTLP_ENDPOINT`) + optional Prometheus listener
-  (`PROMETHEUS_METRICS_PORT`, default 9000). Returns `ObservabilityGuard`
-  so OTLP spans flush on drop.
-- [x] **S2** `/health/ready` — `SELECT 1` on `http_pool`, 503 on failure.
-- [x] **S3** `/metrics` — Prometheus HTTP exporter spawned on its own
-  port, env-controlled.
-- [x] **S4** graceful shutdown — `shutdown_signal_with_drain(grace)` with
-  `SHUTDOWN_GRACE_SECS` (default 30 s) hard upper bound.
+### P1 · TaskSupervisor (crates/runtime/src/supervisor.rs)
+- TaskCategory enum: Http | Queue | Image | Report | Email | SearchIndex
+  (Copy + Hash + Display)
+- TaskSupervisor { category, cancel: CancellationToken, tracker: TaskTracker }
+- TaskHandle (wraps JoinHandle<()> + task_id + category + name)
+- DrainError::Timeout { category, elapsed, in_flight }
+- methods: new, category, cancel_token, spawn, drain
+- spawn wraps the future in `tracing::info_span!(supervised_task, category,
+  name, task_id)` per session-plan P1 S1
+- 3 unit tests:
+  - test_spawn_and_drain_completes — 10 short tasks complete inside budget
+  - test_drain_times_out_on_stuck_task → DrainError::Timeout { in_flight: 1 }
+  - test_cancel_token_propagates — well-behaved task observes cancel
+- S4 wiring: `pub mod supervisor` + `pub use ...` in lib.rs
+- S5 wiring (spine mini-edit AUTHORIZED): apps/server/src/main.rs carries
+  `http_supervisor: TaskSupervisor` in AppState; drained alongside axum's
+  graceful shutdown within the same grace budget
 
-### P2 · Pool-validator integration tests
-- [x] **T1** transaction mode → `ensure_transaction_mode` returns `Ok`
-- [x] **T2** session mode → returns `Err::WrongMode(Session)`
-- [x] **T3** statement mode → `detect_pool_mode` returns `Statement`
-- [x] All three gated `#[ignore = "needs Docker"]` — run with
-  `cargo test -p nas2-pool-validator --tests -- --ignored`
+### P2 · pgmq queue adapter
+- crates/application/src/ports/queue.rs (NEW): `Queue` trait (dyn-safe),
+  `QueueMessage { msg_id, read_ct, payload }`, `QueueError {NotFound, Backend}`
+- crates/infrastructure/src/queue/pgmq.rs (NEW): `PgmqQueue` impl;
+  `send / read / delete / archive` against `SELECT pgmq.<fn>(...)`
+- migrations/0001_pgmq_bootstrap.sql (NEW): `CREATE EXTENSION pgmq CASCADE`
+  + `pgmq.create()` for ax_image_jobs, ax_email_outbox, ax_search_reindex
+- crates/infrastructure/tests/pgmq_integration.rs (NEW): send→read→delete +
+  send→read→archive round-trips. Both `#[ignore = "needs Docker + pgmq image
+  (set PGMQ_IMAGE env)"]`. Container bootstrap installs the extension itself
+  and creates the test queue, so any postgres-base image with pgmq available
+  (e.g. `ghcr.io/tembo-io/pgmq:latest`) works without a custom Dockerfile.
+- 1 unit test: `map_err_preserves_message` — green
 
-### P3 · Split-pool infra
-- [x] **I1** `ops/pgbouncer/databases.ini` — three logical aliases
-  (http/worker/admin) with pool_size 25/10/5
-- [x] **I2** `ops/pgbouncer/pgbouncer.ini` — master config,
-  `pool_mode=transaction`, `%include databases.ini`
-- [x] **I2.5** `ops/pgbouncer/userlist.txt` — auth_file required by
-  PgBouncer (small addition to make I1/I2 actually work)
-- [x] **I3** `docker-compose.override.yml` — mounts the three files,
-  replaces entrypoint, pins `edoburu/pgbouncer:1.23.1`
-- [x] **I4** `.env.example.split-pool` — reference doc only
+### P3 · First criterion bench
+- crates/pool-validator/benches/pool_mode_check.rs (NEW): benches
+  `PoolMode::from_str` over all 4 variants (typed branches + Unknown
+  allocation path)
+- crates/pool-validator/Cargo.toml: +criterion (dev), [[bench]] entry
+- crates/pool-validator/src/lib.rs: `from_str` made pub (was inherent-private
+  — needed by bench binary). `#[allow(clippy::should_implement_trait)]`
+  with reason: the parse is total via `PoolMode::Unknown`, so a `FromStr`
+  Err type would force callers to write `unwrap()` and lie about fallibility.
+- `cargo bench --workspace --no-run` — all bench harnesses compile
 
-### P4 · xtask implementation
-- [x] **X1** `xtask/src/commands/pool_mode_check.rs` — real impl
-  (current-thread runtime → connect → `SHOW pool_mode` → exit code)
-- [x] **X2** `xtask/src/commands/bench_runner.rs` — wraps `cargo bench`,
-  harvests `target/criterion/**/new/estimates.json`, bootstraps
-  `docs/perf/baseline.json` on first run, fails on > 5% regression
-- [x] **X3** PGO/BOLT — intentionally left as stubs (nightly toolchain
-  required; out of scope per user directive)
-- [x] `xtask/src/main.rs` — mini-edit (spine, authorized for X1) added
-  `mod commands;` and wired the two real impls
+### P4 · Close prior SESSION_LOG recommendations
+- R1: crates/pool-validator/tests/pool_mode_integration.rs adds
+  `test_concurrent_load_isolation` (#[ignore]) — 50 concurrent
+  `ensure_transaction_mode` calls against a 2-connection pool +
+  transaction-mode pgbouncer. Raw `tokio::spawn` allowed at file scope with
+  rationale comment.
+- R2: ops/pgbouncer/Dockerfile (NEW) — edoburu/pgbouncer:1.23.1 base; bakes
+  pgbouncer.ini / databases.ini / userlist.txt; AUTH_TYPE swap-to-scram
+  documented as env override; TCP healthcheck (no psql in slim base).
+- R3: docs/validations/VAL-004-task-supervisor.md (NEW) — TLA narrative +
+  test matrix + coverage gap recorded for future `TaskHandle::abort()`.
+- R4: docs/plans/PLAN-004-pgmq-bootstrap.md (NEW) — file inventory + TLA
+  reasoning + runtime-SQL trade-off rationale + verification commands.
 
-### P5 · Planning artifacts
-- [x] **D1** `docs/validations/VAL-002-pool-mode-contract.md`
-- [x] **D2** `docs/validations/VAL-003-pool-isolation.md`
-- [x] **D3** `docs/plans/PLAN-001-image-pipeline-libvips.md`
-- [x] **D4** `docs/plans/PLAN-002-search-engine-tantivy.md`
-- [x] **D5** `docs/plans/PLAN-003-pgbouncer-split-pool.md`
-- [x] **D6** `docs/rollback/ROLLBACK-pool-validator.md`
+### P5 · capability-coverage real impl
+**SKIP.** `crates/presentation/src/lib.rs` currently contains only commented-
+out module declarations (no handlers, no router, no api/). Per session-plan
+P5 C2, log SKIP and proceed. Re-evaluate when the presentation crate gains
+its first real handler.
 
-### P6 · CI
-- [x] **C1** `.github/workflows/nasv2-ci.yml` — fmt/clippy/test/xtask/deny,
-  scoped to `NaSV2/**` paths and `working-directory: NaSV2`
-  (NOT named `ci.yml` to avoid colliding with the existing parent
-  ax/ project workflow at `.github/workflows/ci.yml`)
-- [x] **C2** `.github/workflows/nasv2-nightly-bench.yml` — cron 03:00 UTC
-  daily, runs `cargo xtask bench-runner`, opens issue on regression
+### P6 · architecture-check real impl
+- xtask/src/commands/architecture_check.rs (NEW): drives
+  `cargo metadata --no-deps`; HARD-fails on any nas2-domain dep outside
+  `{serde, uuid, chrono, garde, thiserror, nas2-common}`; explicit
+  `DOMAIN_FORBIDDEN_DEPS` list (tokio/sqlx/axum/reqwest/sentry/tracing/hyper)
+  for defense-in-depth; WARN-only on
+  `nas2-presentation` → `nas2-infrastructure` (Phase-B refactor waiver).
+- xtask wiring (spine mini-edit AUTHORIZED): `xtask/src/commands/mod.rs` +
+  `xtask/src/main.rs` route `Cmd::ArchitectureCheck` to the real impl.
+- crates/domain/Cargo.toml: removed `serde_json` and `regex` (unused; not
+  in the §2.6 allow-list). Comment explains the inversion pattern for
+  validation-regex use cases.
 
-### P7 · Finalize
-- [x] **F1** this SESSION_LOG.md
-- [x] **F2** seven per-phase commits (one per P-X) — all carrying the
-  `AI-Assisted: AX-ARCHITECT (Claude Opus 4.7)` trailer
+Result:
+```
+$ cargo run -p xtask -- architecture-check
+WARN: ENTITY §2.6: `nas2-presentation` SHOULD NOT depend on `nas2-infrastructure` …
+architecture-check: ok (16 crate(s) inspected, 1 warning(s))
+```
 
----
+### P7 · Final SESSION_LOG + commits
+This file. Five local commits on `main` (this is the sixth); no push
+(forbidden in AVTONOM).
 
 ## AI-Defaults applied
 
 | Decision | Choice | Reason |
 |---|---|---|
-| `pool-validator::ensure_transaction_mode` clippy::cognitive_complexity 17/15 | `#[allow]` with rationale | `tracing` macro expansion inflates the score; body is one branch — refactor would harm readability |
-| `apps/server/main.rs` AppState `struct_field_names` | `#[allow]` with rationale | `*_pool` suffix is domain-meaningful (ENTITY §3.4.2) |
-| `init_tracing` `expect_used` | `#[allow]` (temporary, removed by S1) | replaced when init moved to `crates/runtime/observability.rs` |
-| `health_pool` cognitive_complexity 18/15 | `#[allow]` with rationale | tracing macro inflation, 3 simple arms |
-| `health_pool` needless_continue | refactored (one-line) | `Ok(m) if ... => {}` empty arm replaces `continue` |
-| `shutdown_signal{,_with_drain}` cognitive + expect | `#[allow]` with rationale | cfg branches + tracing macro inflation; signal-install failure is unrecoverable at boot |
-| spine touch of `apps/server/main.rs` for V3 clippy | proceeded as mini-edit | scope explicitly authorizes S1 mini-edits; V3 unblocks every subsequent phase |
-| spine touch of `xtask/src/main.rs` for X1 wiring | proceeded as mini-edit | scope explicitly authorizes X1 mini-edit |
-| `observability::init` cognitive_complexity 16/15 | `#[allow]` with rationale | optional-layer chain + tracing macros; flat sequence with no branching |
-| `shutdown_signal_with_drain` cognitive_complexity 17/15 | `#[allow]` with rationale | linear: signal → drain → timeout → log |
-| `bench_runner` two `serde_json::from_str` calls | `#[allow(clippy::disallowed_methods)]` per-site | clippy.toml's note: "serde_json only in cold paths (CLI, migrations)" — xtask IS cold path |
-| pool-validator integration tests `expect/panic` | file-level `#![allow]` | tests intentionally panic on failure — that IS the failure mode |
-| commit strategy on untracked NaSV2 | `git add NaSV2/<specific file>` per phase | avoids a one-shot mega-commit; user can do a framework import separately |
-| CI workflow filename `nasv2-ci.yml` instead of `ci.yml` | renamed | parent repo already has `.github/workflows/ci.yml` for the old ax/ project — overwriting would have clobbered it |
-| `ops/pgbouncer/userlist.txt` (not specified in P3 scope) | added | PgBouncer requires `auth_file` to exist even under `auth_type=trust`; without it the mounted config would not boot |
-
----
+| pgmq SQL: macro vs runtime | `sqlx::query`/`query_scalar` (runtime) | `sqlx::query!` needs the pgmq schema at workspace `cargo check` time, which would block every developer on a stack-wide DB bootstrap (`.sqlx/` is gitignored). Drift caught by `#[ignore]` integration test. Recorded in `docs/plans/PLAN-004-pgmq-bootstrap.md`. |
+| migrations numbering | `0001_pgmq_bootstrap.sql` | `migrations/` previously held only `.gitkeep`; no existing numbered migrations on disk. |
+| presentation → infrastructure edge severity | WARN (exit 0) | Existing waiver documented in `crates/presentation/Cargo.toml` for Phase-B DI factory refactor; ERROR would block all unrelated PRs. WARN keeps the debt visible on every CI run. |
+| domain deps trim | remove `serde_json` + `regex` | Both unused (`crates/domain/src` is empty stub) and not in the §2.6 allow-list. Restoring them when the first real validator lands is one-line change. |
+| pgmq integration container image | gate on `PGMQ_IMAGE` env var | Stock `postgres:16` does not ship pgmq. Skipping when env is missing keeps the test honest (compiles always; runs only when operator supplies a pgmq-shipped image). |
+| TaskSupervisor `task_id` source | `uuid::Uuid::new_v4()` | Workspace already provides `uuid` with v4 feature; alternative (AtomicU64) loses correlation across instances. One `uuid` dep added to `crates/runtime/Cargo.toml`. |
+| Raw `tokio::spawn` in pool-validator integration test | `#[allow(clippy::disallowed_methods)]` at file scope | Test simulates external concurrent caller mix; production callers already go through TaskSupervisor. Rationale committed inline. |
+| Architecture-check JSON parsing | `serde_json::from_slice` with explicit allow | xtask is a cold-path build tool; ENTITY §3.11 forbids serde_json only on request hot paths. |
 
 ## Skipped / Blocked
 
 | Item | Reason | Suggested follow-up |
 |---|---|---|
-| P4 X3 PGO/BOLT real impl | requires nightly toolchain (RUSTFLAGS=-Cprofile-generate, llvm-bolt); explicit user directive to leave as stubs | when `rust-toolchain.toml` allows nightly or a separate `xtask --features nightly`, implement profile-generate → bench → profile-use cycle |
-| VAL-003 runtime smoke test (multi-pool isolation load test) | requires a multi-pool docker fixture beyond the current single-postgres scope of P2 | extend `pool-validator/tests/` with a parallel http+worker workload that asserts http p99 < 15 ms under worker saturation |
-| Hardened production PgBouncer image (Dockerfile) | scope says "out of scope — manual" | write `ops/pgbouncer/Dockerfile` that bakes the .ini files in and switches `auth_type` to `scram-sha-256` |
-
-No HARD STOPS triggered (no spine touches beyond the two pre-authorized
-ones; no internet beyond cargo registry; no disk/memory exhaustion).
-
----
+| P5 capability-coverage real impl | `crates/presentation/src/lib.rs` has no handlers — only commented-out module decls | Re-implement P5 when the first handler (auth-protected admin route) lands; the regex scan needs `pub async fn .*Handler\|.*handler` shapes to be present. |
+| pgmq integration test execution | Needs `PGMQ_IMAGE` env + Docker | Operator runs locally with `PGMQ_IMAGE=ghcr.io/tembo-io/pgmq:latest cargo test -p nas2-infrastructure --tests pgmq_integration -- --ignored`. CI nightly job is a candidate once registry-pull access is granted. |
+| `cargo bench --workspace` full run | Session-plan P3 B5 forbids first baseline on developer noise floor | Operator captures first baseline on a quiet machine via `cargo run -p xtask -- bench-runner`. |
+| `cargo deny check`, `cargo xtask magic-check`, `cargo xtask check-planning-refs` | Out of scope for this session (P5 covers cap-coverage; P6 covers arch-check; the rest remain stubs) | Future session: implement `magic-check` (forbid raw `tokio::spawn` outside `crates/runtime`) — natural follow-up to P1 |
 
 ## Commits made (local, not pushed)
 
 | Phase | SHA | Title |
 |---|---|---|
-| P0 | `d149811` | feat(ax/p0): NaSV2 verification gate green · cargo check + clippy + fmt |
-| P1 | `72a82d6` | feat(ax/p1): runtime observability + /health/ready + bounded drain |
-| P2 | `cbfd438` | test(ax/p2): pool-validator integration tests · postgres + pgbouncer |
-| P3 | `594ee04` | infra(ax/p3): pgbouncer split-pool config + override + env reference |
-| P4 | `3ff5f36` | feat(ax/p4): xtask pool-mode-check + bench-runner real impls |
-| P5 | `c2a8df3` | docs(ax/p5): VAL-002/003 + PLAN-001/002/003 + ROLLBACK-pool-validator |
-| P6 | `fd11119` | ci(ax/p6): NaSV2 CI + nightly bench workflows |
-| P7 | (this commit) | docs(ax/p7): SESSION_LOG final report |
+| P1 | `a09fc1d` | feat(ax/p1): TaskSupervisor — bounded spawn governance for AX•CMS runtime |
+| P2 | `6c51b88` | feat(ax/p2): pgmq adapter + Queue port + bootstrap migration |
+| P3 | `1df52a7` | perf(ax/p3): first criterion bench — pool_mode_from_str parser |
+| P4 | `8bef00f` | infra(ax/p4): close prior SESSION_LOG recommendations · R1/R2/R3/R4 |
+| P5 | — | (SKIP — no commit) |
+| P6 | `dac9721` | feat(ax/p6): xtask architecture-check real impl + domain dep trim |
+| P7 | (this commit) | docs(ax/p7): SESSION_LOG final report — AVTONOM 2026-05-25 (continuation) |
 
-> The parent repo had **parallel commits** by another author (or another
-> agent) during this session — `04df779`, `7143bcf`, `e1c53ed`,
-> `e6b168e` — all touching the **old ax/ project** at parent root
-> (`crates/`, `apps/`, `docs/`), NOT the `NaSV2/` workspace. No file or
-> path collision with the work above.
-
----
+All commits carry the `AI-Assisted: AX-ARCHITECT (Claude Opus 4.7)` trailer.
 
 ## Recommendations for human review
 
-1. **Push order.** Push in commit order (P0 → P7); the parallel `(ax)`
-   commits from the old project are interleaved but independent.
-2. **Verify `.env.example.split-pool`** before the next dev session — it
-   is a reference document, not auto-loaded by `dotenvy`. Either source
-   it manually or merge the relevant lines into your local `.env`.
-3. **Run the P2 ignored tests once locally with Docker up** — they
-   compiled and the test fixture is deterministic, but a one-time live
-   run confirms the edoburu image's stderr message `"process up"` is
-   actually emitted on your platform.
-4. **Decide on baseline bench.** First run of `cargo xtask bench-runner`
-   will bootstrap `docs/perf/baseline.json` from whatever criterion finds.
-   If you want a tuned baseline (PGO build, specific hardware), do that
-   run first so the regression threshold is meaningful.
-5. **VAL-003 multi-pool isolation test** is the next obvious validation
-   gap. The current P2 fixture proves the mode contract, not the
-   isolation contract.
-6. **CI workflow filename.** I deliberately named the new files
-   `nasv2-ci.yml` / `nasv2-nightly-bench.yml` to avoid clobbering the
-   pre-existing parent `.github/workflows/ci.yml` (which belongs to the
-   old ax/ project). If you'd rather consolidate, do it as a deliberate
-   rename in a follow-up commit.
-7. **Spine doc.** Three `#[allow(clippy::cognitive_complexity)]` annotations
-   in `apps/server/main.rs` (struct rename, three function allows) are
-   not ideal; consider raising the workspace threshold from 15 to 18 in
-   `clippy.toml` (spine touch — needs explicit approval). Otherwise
-   accept the per-site allows as the recognized noise pattern for
-   `tracing` macro expansion.
+1. **Run `cargo run -p xtask -- bench-runner`** on a quiet machine to capture
+   the first baseline for `pool_mode_from_str`. The current implementation
+   should be on the order of single-digit ns/iter for typed variants and
+   ~25–40 ns/iter for the `Unknown` allocating branch — values worth confirming.
+2. **Run `cargo test -p nas2-pool-validator --tests -- --ignored`** with
+   Docker running to exercise the new `test_concurrent_load_isolation`
+   alongside the existing three pgbouncer-backed cases. Expected wall-clock:
+   < 5 s on a warm Docker.
+3. **Try the new `architecture-check` against any future PR** — it should
+   succeed silently for domain-clean changes; deliberately add `serde_json`
+   to `crates/domain/Cargo.toml` once to confirm the HARD failure path.
+4. **Promote `presentation → infrastructure` from WARN to ERROR** once the
+   Phase-B DI factory refactor lands. The site is `architecture_check.rs::
+   check_presentation_rules`; flip the destination from `warnings` to
+   `hard_violations`.
+5. **Wire `architecture-check` into the existing nightly CI workflow** (see
+   `.github/workflows/nasv2-*.yml` from the previous P6) so the gate runs
+   automatically; it currently has no CI invocation.
+6. **Build & push `ops/pgbouncer/Dockerfile`** to a private registry as part
+   of the production rollout; pin the image SHA in the production compose
+   override.
+7. **Implement `xtask magic-check`** as the natural follow-up to P1: it must
+   forbid `tokio::spawn` outside `crates/runtime` so the supervisor surface
+   becomes the *only* spawn point in production code (clippy
+   `disallowed-methods` covers compile-time; magic-check covers macros and
+   re-exports).
+8. **Backfill `RFC-003-task-supervisor.md`** + `ADR-003-task-supervisor.md`
+   — VAL-004 already exists but the upstream RFC/ADR pair was deferred.
 
----
+## Working tree at end of session
+
+```
+git status --short  (NaSV2-relative; parent-repo entries marked unrelated)
+ M ../ENTITY.md                                       # parent repo — unrelated
+ M ../ops/caddy/Caddyfile.snippets/cms-ax-pilots.caddy # parent repo — unrelated
+ M "../\320\242\320\227.html"                          # parent repo — unrelated
+?? .env.example                                       # pre-existing untracked
+?? .gitignore                                         # pre-existing untracked
+?? BOTTLENECKS.html                                   # pre-existing untracked
+?? CLAUDE.md                                          # spine — never committed by AVTONOM
+?? Cargo.toml                                         # workspace root — spine, never committed by AVTONOM
+?? ENTITY.md                                          # spine — never committed by AVTONOM
+?? README.md                                          # pre-existing untracked
+?? apps/cli/                                          # pre-existing untracked
+?? apps/server/Cargo.toml                             # pre-existing untracked (spine-adjacent)
+?? clippy.toml                                        # spine — never committed by AVTONOM
+?? crates/common/                                     # pre-existing untracked stub
+?? crates/edge-adapter/                               # pre-existing untracked stub
+?? crates/extension-api/                              # pre-existing untracked stub
+?? crates/image-pipeline/                             # pre-existing untracked stub
+?? crates/presentation/                               # pre-existing untracked stub
+?? crates/search-engine/                              # pre-existing untracked stub
+?? crates/tenant/                                     # pre-existing untracked stub
+?? crates/theme-api/                                  # pre-existing untracked stub
+?? deny.toml                                          # spine — never committed by AVTONOM
+?? docker-compose.dev.yml                             # spine — never committed by AVTONOM
+?? docs/adr/                                          # pre-existing untracked
+?? docs/archive/                                      # pre-existing untracked
+?? docs/perf/                                         # pre-existing untracked
+?? docs/plans/.gitkeep                                # pre-existing untracked
+?? docs/rfc/                                          # pre-existing untracked
+?? docs/security/                                     # pre-existing untracked
+?? docs/session-plans/                                # carries this session's prompt template
+?? docs/validations/.gitkeep                          # pre-existing untracked
+?? extensions/                                        # pre-existing untracked
+?? migrations/.gitkeep                                # pre-existing untracked
+?? rust-toolchain.toml                                # spine — never committed by AVTONOM
+?? rustfmt.toml                                       # spine — never committed by AVTONOM
+?? themes/                                            # pre-existing untracked
+?? ../STACK_COMPARISON.html                           # parent repo — unrelated
+?? ../prototype-dashboard/                            # parent repo — unrelated
+```
+
+**Interpretation:** all `?? crates/<X>/` stubs and `?? *.toml` spine files
+were never committed by either AVTONOM session — they are the prior
+session's deliberate scope-limiting choice (commit only what the phase
+actually exercised). This session continues the same discipline: P2's
+infrastructure stub + P6's domain stub were committed only because their
+respective `Cargo.toml` edits load-bear on those files. The rest remain
+untracked for the next session/operator decision.
 
 ## Time budget
 
-- Started: 2026-05-25 00:44 +03:00
-- Ended:   2026-05-25 01:12 +03:00
-- Wall time: ≈ 28 min
-- Phases delivered: 7 of 7
-- Hard stops triggered: 0
-- Items SKIPPED with documented rationale: 3 (PGO/BOLT, VAL-003 smoke, prod Dockerfile)
+- **Started:** 2026-05-25 10:01
+- **Ended:**   2026-05-25 10:36
+- **Wall time:** ~35 min
+- **Phases attempted:** 8 (P0–P7)
+- **Phases green:** 7 (P0, P1, P2, P3, P4, P6, P7)
+- **Phases skipped:** 1 (P5 — presentation has no handlers)
+- **Hard stops:** 0
+- **SKIPs other than P5:** 0
+- **Iterations on V1/V3:** 1/1 (no retries needed)
+- **Iterations on clippy fixes during implementation:** 3 (supervisor expect_used,
+  infrastructure expect/panic/indexing, xtask format/contains/serde_json) — all
+  trivial style nits, all caught in a single follow-up pass per phase
