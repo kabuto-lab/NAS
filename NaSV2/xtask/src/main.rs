@@ -65,7 +65,7 @@ fn main() -> Result<()> {
     match cli.command {
         Cmd::ArchitectureCheck => commands::architecture_check::run(),
         Cmd::MagicCheck => commands::magic_check::run(),
-        Cmd::CapabilityCoverage => stub("capability-coverage"),
+        Cmd::CapabilityCoverage => commands::capability_coverage::run(),
         Cmd::CheckPlanningRefs { commit } => commands::check_planning_refs::run(&commit),
         Cmd::ExtensionAudit => stub("extension-audit"),
         Cmd::PoolModeCheck { database_url } => commands::pool_mode_check::run(&database_url),
