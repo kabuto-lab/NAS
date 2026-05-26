@@ -20,3 +20,9 @@ thiserror = { workspace = true }
 # `serde_json` and `regex` removed 2026-05-25 (AVTONOM P6) — they are not
 # allowed by the §2.6 domain whitelist. Domain validators that need a regex
 # get the compiled pattern injected by the application layer.
+
+# dev-only: serde_json for aggregate-serde-roundtrip tests. NOT a runtime
+# dep — does not enter the architecture-check allow-list at production
+# compile time.
+[dev-dependencies]
+serde_json = { workspace = true }
