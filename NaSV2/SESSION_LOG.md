@@ -1,9 +1,9 @@
-# SESSION_LOG — AVTONOM 2026-05-26 · M1 W1+W2+W3 closed (15 days · 18 commits)
+# SESSION_LOG — AVTONOM 2026-05-26 · M1 W4 D2..D5 close-out
 
-> **Mode:** AVTONOM (operator-extended × 3 — "follow optimal plan").
-> **Scope:** Council adoption + entire M1 W1 + W2 + W3 (15 daily prompts).
-> **Outcome:** **18 local commits on `main`, no push.**
-> **Master-plan progress:** **15 of 20 M1 days · 75% of M1 complete**.
+> **Mode:** AVTONOM (operator: "AVTONOM" + "follow optimal plan"; availability = unavailable).
+> **Scope:** M1 W4 D2..D5 — closes M1 (the foundation month).
+> **Outcome:** **5 local commits on `main`, no push.**
+> **Master-plan progress:** **20 of 20 M1 days complete · M1 closed · M2 ready to launch.**
 
 ---
 
@@ -11,40 +11,32 @@
 
 | # | SHA | Day | Title |
 |---|---|---|---|
-| 1 | `41b41cf` | bootstrap | docs(governance,Council-v1.0): adopt 14-mind Council civilization |
-| 2 | `e6a177e` | W1 D1+D2 | feat(g1-d1+d2): xtask magic-check + check-planning-refs |
-| 3 | `e0ba2f9` | W1 D3 | docs(g1-d3): HOW-TO-RUN §10 — CI gate matrix |
-| 4 | `ea4f120` | W1 D4 | feat(g2-d4): nas2-common — 7 newtype IDs + Page<T> |
-| 5 | `7368bf7` | W1 D5 | feat(g2-d5): nas2-common AppError + sanitize placeholder |
-| 6 | `ee1a4e0` | (log) | docs(session-log): W1 close |
-| 7 | `d4f7c05` | W2 D1 | feat(g2-w2d1): nas2-domain::site + SiteSlug |
-| 8 | `6ee41c4` | W2 D2 | feat(g2-w2d2): nas2-domain::post + PostStatus FSM + Block placeholder |
-| 9 | `81f1d0a` | W2 D3 | feat(g2-w2d3): Capability + Role + User + Email |
-| 10 | `97ece1a` | W2 D4 | feat(g2-w2d4): nas2-domain::block — real enum |
-| 11 | `4240e5b` | W2 D5 | feat(g3-w2d5): nas2-application::ports + mockall |
-| 12 | `581e99b` | (log) | docs(session-log): W2 close |
-| 13 | `7b07fbb` | W3 D1 | feat(g3-w3d1): first use case GetPublishedPageBySlug |
-| 14 | `e8aa036` | W3 D2 | feat(g3-w3d2): nas2-tenant — context + resolver + middleware |
-| 15 | `8fbe810` | W3 D3 | feat(g3-w3d3): cache_key_hash(seed) + Media + MediaRepository + G3 close-out |
-| 16 | `d6c52af` | W3 D4 | feat(g4-w3d4): nas2-presentation router skeleton + AppState |
-| 17 | `fbf419b` | W3 D5 | feat(g4-w3d5): GET /api/v1/pages/:slug handler + integration test |
-| 18 | (this log) | — | docs(session-log): W3 close |
+| 1 | `7aede89` | W4 D2 | feat(ax/g5-w4d2,PLAN-G5): xtask capability-coverage real impl |
+| 2 | `3641ed5` | W4 D3 | docs(ax/g5-w4d3,RFC-001,RFC-003,RFC-004,ADR-001,VAL-001): planning trail backfill — 5 new docs |
+| 3 | `8f3806d` | W4 D4 | feat(ax/g5-w4d4,VAL-002,SEC-002,SEC-003,RFC-001): ammonia sanitize-on-write + first perf baseline + SEC-002/003 docs |
+| 4 | `9cbbdf6` | W4 D5 | docs(ax/retro,VAL-001): RETRO-2026-06 month-end report |
+| 5 | `d42a55a` | W4 D5 | chore(ax/bootstrap,PLAN-G1): next-month bootstrap (2026-07) generated |
 
-Every commit: `AI-Assisted: AX-ARCHITECT (Claude Opus 4.7)` trailer.
-Commit 1 also: `Constitutional-Adoption: v1.0`.
+Every commit: trailer `AI-Assisted: AX-ARCHITECT (Claude Opus 4.7)`.
 
 ---
 
-## End-of-Week-3 carry-over checklist (per 2026-06-12.md)
+## End-of-W4 carry-over checklist (per `docs/session-plans/daily/2026-06-19.md` ROADMAP-2026-05 §B6)
 
 | Check | Status |
 |---|---|
-| 5 W3 commits landed | ✅ `7b07fbb`/`e8aa036`/`8fbe810`/`d6c52af`/`fbf419b` |
-| `cargo test --workspace --lib --no-fail-fast` | ✅ all green (110+ tests) |
-| `cargo test -p nas2-presentation` ≥ 4 tests | ✅ 4 (3 router_smoke + 1 get_page_by_slug) |
-| `xtask architecture-check` | ✅ green (16 crates · 1 documented WARN) |
-| `xtask magic-check` | ✅ green (60 files scanned, was 6 at session start) |
-| Marker `caps.require(cms.page.read)` in api/pages.rs | ✅ present |
+| `cargo check --workspace --all-targets` | ✅ green (log: `docs/session-logs/avtonom-2026-06-19-cargo-check.log`) |
+| `cargo clippy --workspace --all-targets -- -D warnings` | ✅ green (log: same dir) |
+| `cargo test --workspace --lib --no-fail-fast` | ✅ 103 lib tests pass (log: same dir) |
+| `cargo test --workspace --tests --no-fail-fast` | ✅ 136 tests pass (lib + integration) |
+| `xtask architecture-check` | ✅ ok (16 crates · 1 documented WARN: presentation→infrastructure waiver) |
+| `xtask magic-check` | ✅ ok (61 files scanned across 3 dirs) |
+| `xtask capability-coverage` | ✅ ok (1 handler scanned in crates/presentation/src/api) — W4 D2 real impl active |
+| `xtask check-planning-refs --commit HEAD~5..HEAD` | ✅ ok (5 commits this session all OK) |
+| `docs/perf/baseline.json` exists | ✅ bootstrapped W4 D4 (4 samples from `pool_mode_from_str` on operator-windows-host) |
+| Planning trail orphans ≤ 2 | ✅ 2 deliberate residual (RFC-002 edge, PLAN-002 search) |
+| RETRO-2026-06.md committed | ✅ `9cbbdf6` |
+| `avtonom-month-bootstrap-2026-07.md` committed | ✅ `d42a55a` |
 
 ---
 
@@ -52,115 +44,91 @@ Commit 1 also: `Constitutional-Adoption: v1.0`.
 
 | Crate / Target | Tests | Notes |
 |---|---:|---|
-| `xtask` (bin) | 18 | magic-check + check-planning-refs |
-| `nas2-common` (lib) | 25 | ids/page/error/sanitize |
-| `nas2-domain` (lib) | 60 | site/post/block/capability/role/user/media |
-| `nas2-application` (lib) | 10 | ports dyn-safety + GetPublishedPageBySlug 5 + smoke 1 |
-| `nas2-tenant` (lib + tests) | 5 | resolver 2 + middleware integration 3 |
-| `nas2-presentation` (tests) | 4 | router_smoke 3 + get_page_by_slug 1 |
-| `nas2-runtime`, `pool-validator`, `infrastructure::queue` | ~7 | pre-existing |
-| **Total** | **~129** | +123 in this session |
+| `xtask` (bin tests) | 23 | +5 capability_coverage this session |
+| `nas2-common` (lib) | 29 | +5 ammonia (sanitize) this session |
+| `nas2-domain` (lib) | 60 | unchanged |
+| `nas2-application` (lib) | 10 | unchanged |
+| `nas2-tenant` (lib + tests) | 5 | unchanged |
+| `nas2-presentation` (tests) | 7 | unchanged |
+| `nas2-runtime`, `pool-validator`, `infrastructure::queue` | ~7 | unchanged |
+| **Total** | **~136** | +10 this session |
 
-All passing.
+All passing. `0` flipped `#[ignore]`s. No tests removed.
 
 ---
 
-## Council activation across 15 daily prompts
+## Architectural surface added this session
 
-| Tier-3 activation | Day | Why |
+```
+                  ┌──────────────────────────────────────────────────┐
+                  │  W4 D2: xtask capability-coverage                │
+                  │   ├─ heuristic regex scan of                     │
+                  │   │   crates/presentation/src/api/**/*.rs        │
+                  │   ├─ caps.require(<cap>) marker OR               │
+                  │   │   no_capability_required: <reason>           │
+                  │   ├─ 30-line look-back window                    │
+                  │   └─ exits 1 with file:line on miss              │
+                  └──────────────────────────────────────────────────┘
+                  ┌──────────────────────────────────────────────────┐
+                  │  W4 D3: planning trail backfill                  │
+                  │   ├─ RFC-001 cms-pages-publish                   │
+                  │   ├─ RFC-003 task-supervisor                     │
+                  │   ├─ RFC-004 pgmq-queue                          │
+                  │   ├─ ADR-001 cms-pages-architecture              │
+                  │   └─ VAL-001 cms-pages-tests                     │
+                  │  + cross-link refresh of VAL-002, VAL-004,       │
+                  │    PLAN-004                                      │
+                  │  Net orphans 6 → 2 (deliberate residual)         │
+                  └──────────────────────────────────────────────────┘
+                  ┌──────────────────────────────────────────────────┐
+                  │  W4 D4: write-time sanitize + perf + SEC         │
+                  │   ├─ nas2-common::sanitize::clean_html           │
+                  │   │   (ammonia OnceLock<Builder>, idempotent)    │
+                  │   ├─ docs/perf/baseline.json (4 samples)         │
+                  │   ├─ docs/perf/captured_meta.json (sidecar)      │
+                  │   ├─ SEC-002 capability surface (6 vars + JWT    │
+                  │   │   replay + plugin elevation threat model)    │
+                  │   └─ SEC-003 multi-tenant isolation (set_config  │
+                  │       contract + RLS policy pattern + 7 threats) │
+                  └──────────────────────────────────────────────────┘
+                  ┌──────────────────────────────────────────────────┐
+                  │  W4 D5: RETRO + next-month bootstrap             │
+                  │   ├─ RETRO-2026-06.md (9 sections, 5 next-month  │
+                  │   │   proposals, 12/13 exit criteria green)      │
+                  │   └─ avtonom-month-bootstrap-2026-07.md          │
+                  │       (twin + PF1.0 RETRO seed + MPD-001 note)   │
+                  └──────────────────────────────────────────────────┘
+```
+
+---
+
+## AI-Defaults applied this session
+
+| Decision | Choice | Where | Reason |
+|---|---|---|---|
+| Signature regex generics-aware | `(?:<[^>]*>)?` between fn name and `(` | W4 D2 capability_coverage.rs | Daily prompt §pitfall 2 — explicit recommendation. |
+| Opt-out reason mandatory non-empty | `no_capability_required\s*[:=]\s*\S+` | W4 D2 | Discourages drive-by exemption. |
+| `#[allow(clippy::indexing_slicing)]` on `lines[lo..=idx]` | local allow with comment | W4 D2 run() | Bounds mathematically safe (saturating_sub + enumerate). |
+| `std::iter::repeat_n` over loop+push | filler-line construction in tests | W4 D2 tests | Avoids `same_item_push` clippy lint. |
+| Path A bench-runner (vs Path B) | Path A | W4 D4 | Daily prompt default; "if unsure → Path A". Bootstrap succeeded on first try. |
+| `OnceLock<Builder>` for ammonia | static init | W4 D4 sanitize.rs | Ammonia `Builder<'static>` is `Sync`; no fallback needed. |
+| Doc comment list indent 2 spaces | normalized | W4 D4 sanitize.rs | `clippy::doc_overindented_list_items` enforcement. |
+| `--commit HEAD~5..HEAD` for plan-refs verify | explicit range, not bare HEAD | W4 D3/D5 | The current `--commit HEAD` impl walks full history (not just HEAD). Workaround documented in RETRO §4. |
+| Skipped full-history `xtask check-planning-refs` repair | left as RETRO §7-5 next-month proposal | W4 D3 | Out of W4 D2..D5 scope; 20 bootstrap commits fail and need either retroactive note or impl change. |
+
+---
+
+## Skipped / not done this session (deliberate)
+
+| Item | Reason | Follow-up |
 |---|---|---|
-| Adversary | W3 D2 (tenant middleware) | First public input boundary (Host header) |
-| Adversary + TestPilot | W3 D4 (router skeleton) | First HTTP router surface |
-| Adversary + TestPilot | W3 D5 (first endpoint) | First public REST endpoint |
-
-Tier-3 outputs recorded inline in each day's commit message.
-
-Tier-4 invoked once at Adoption Pass (binding plugin SDK shape via ADR-010 pilot).
-
-All other days: Tier-3 skipped with explicit reason (CONSTITUTION §2.6) — docs / dev tooling / internal types / port traits.
-
----
-
-## Architectural surface shipped this session
-
-```
-                   ┌──────────────────────────────────────────┐
-                   │  presentation                            │
-                   │   ├─ AppState (Arc<dyn PostRepository>) │
-                   │   ├─ build_router → /health + /api/v1   │
-                   │   ├─ caps::extract_caps_for_today (stub)│
-                   │   └─ api::pages::get_page_by_slug       │
-                   └──────────┬───────────────────┬───────────┘
-                              │ uses              │ uses
-                              ▼                   ▼
-              ┌───────────────────────┐  ┌───────────────────────┐
-              │  tenant               │  │  application          │
-              │   ├─ TenantContext    │  │   ├─ queries::        │
-              │   ├─ TenantResolver   │  │   │   GetPublishedPage│
-              │   ├─ InMemory impl    │  │   │   BySlug          │
-              │   └─ resolve_tenant   │  │   └─ ports::          │
-              │      middleware       │  │       Post/User/Site/ │
-              └─────────┬─────────────┘  │       Media           │
-                        │                │       Repository      │
-                        │                └──────┬────────────────┘
-                        │ uses                  │ uses
-                        ▼                       ▼
-                     ┌──────────────────────────────────┐
-                     │  domain                          │
-                     │   ├─ Site + SiteSlug VO         │
-                     │   ├─ Post + PostStatus FSM       │
-                     │   ├─ Block (Heading/Paragraph/   │
-                     │   │     Image/CodeBlock)         │
-                     │   ├─ Capability (6) + Set        │
-                     │   ├─ Role · User · Email VO      │
-                     │   └─ Media (placeholder)         │
-                     └─────────┬────────────────────────┘
-                               │ uses
-                               ▼
-                     ┌──────────────────────────────────┐
-                     │  common                          │
-                     │   ├─ 7 newtype IDs               │
-                     │   ├─ Page<T>                     │
-                     │   ├─ AppError + IntoResponse     │
-                     │   └─ sanitize::clean_html        │
-                     │      _placeholder                │
-                     └──────────────────────────────────┘
-
-                     xtask: architecture-check / magic-check /
-                            check-planning-refs / pool-mode-check
-                            (4 hygiene gates green)
-```
-
-End-to-end flow at session-close:
-
-```
-GET /api/v1/pages/hello
-  └─► resolve_tenant middleware (Host → TenantContext)
-        └─► get_page_by_slug handler
-              ├─► PostSlug::try_new (400 on malformed)
-              ├─► extract_caps_for_today → {CmsPageRead}
-              └─► GetPublishedPageBySlug::execute
-                    ├─► capability gate (403 if missing)
-                    ├─► PostRepository::find_by_slug (Arc<dyn>)
-                    └─► Published-status filter (404 otherwise)
-        ← Json<Post> on success
-```
-
----
-
-## AI-Defaults applied (cumulative this session)
-
-Recorded across commits 2–17. Notable new ones from W3:
-
-| Decision | Choice | Where |
-|---|---|---|
-| Use-case generic over R (not Arc<dyn>) | Static dispatch §8.3 | W3 D1 |
-| Capability stub for now | JWT-derived M2 W3 | W3 D5 |
-| Draft/Scheduled/Archived → 404 (not 403) | Anti-enumeration | W3 D1 |
-| Resolver middleware applies to /health | Trade-off documented; Router::nest if LB flaps | W3 D4 |
-| `Arc<T: PostRepository + ?Sized>: PostRepository` blanket impl | enables Arc<dyn> at handler boundary while keeping use case generic | W3 D5 |
-| axum 0.8 `{slug}` syntax (not `:slug`) | matches axum 0.8 path param shape | W3 D5 |
-| `cfg_attr(test, allow(clippy::disallowed_types))` for mockall | mockall::mock! internally uses std::sync::Mutex | W3 D4-D5 |
+| Pre-existing `cargo fmt --check` drift in ~25 tracked files | Pre-existing condition; not in W4 D2..D5 daily prompts; would have been ~25-file scope expansion | RETRO §7-3 next-month proposal: one `cargo fmt --all` + pre-commit hook (M2 W5 D1) |
+| Many untracked files in NaSV2/ (ADR-002..006, RFC-002, PLAN-001..004, Cargo.toml workspace root, scaffold crates, .env.example, etc.) | Pre-existing git topology: barbie/AX is the repo root and only a subset of NaSV2 was ever `git add`ed. Adding everything is operator-judgement scope. | Note: these files exist on disk and the code works; just not committed. Operator should decide whether to `git add` them in batch. |
+| ENTITY.md §0 amendment for MISSION-V2 | Spine touch; AVTONOM forbids ENTITY.md edits | Awaits operator-authorized spine-touch window |
+| `git push` | AVTONOM forbids; operator-only | Operator commits + reviews + pushes when ready |
+| Re-baseline `docs/perf/baseline.json` on quiet machine | Bootstrap captured on operator-windows-host with potential noise; baseline OK for now | RETRO §9 action 2: re-capture at M11 W4 (production prep) or earlier on CI runner |
+| Fix `xtask check-planning-refs --commit HEAD` semantics | Out of W4 D2..D5 scope | RETRO §7-5 next-month proposal (M2 W5 D2) |
+| Synthetic violation auto-revert via git stash (D2 verification) | Used Edit + reverse Edit instead | Worked cleanly; no stash needed. |
 
 ---
 
@@ -168,56 +136,73 @@ Recorded across commits 2–17. Notable new ones from W3:
 
 | D | Severity | Fact |
 |---|---|---|
-| D-10 | info | W1 D1 magic-check carry-over (repaired same session) |
-| D-1 | info × 3 | Operator-extended scope (W1 bundle, W2 bundle, W3 bundle) — each within operator override per CONSTITUTION §12 |
-| D-3, D-5, D-6, D-7 | green | Every commit |
-| D-2, D-4, D-9 | dormant | Weekly cadence; sweeps not run this session |
-| D-8 | green | M3 W1 D1 entering state still aligned with current code |
+| D-1 Scope | info | Operator authorized full W4 close-out (D2..D5 in one session); within `CONSTITUTION §12` operator-sovereign override. |
+| D-3 Capability | green | `xtask capability-coverage` ok at session-end. Real-impl gate now in effect. |
+| D-5 Pool mode | green | Untouched; apps/server/main.rs startup contract intact. |
+| D-6 Planning trail | green for new commits | `HEAD~5..HEAD` ok (5/5). Bare `HEAD` still trips 20 historical bootstrap commits (logged as RETRO §7-5). |
+| D-7 Architecture | green with documented WARN | 1 known WARN (presentation→infrastructure waiver) explicitly documented. |
+| D-10 Memory | info → repaired | `project_next_day_plan.md` §4.1 said "first action: commit W4 D1" — was stale (W4 D1 already committed as `e238dd6` before this session). Updated below + in memory file. |
+| D-4 Bench | info | First baseline.json bootstrapped (W4 D4). 4 samples. Captured on operator-windows-host; noise caveat in `docs/perf/captured_meta.json`. |
+| D-9 Decision-graph | dormant | Historian Friday sweep not triggered; no new ADR conflicts; ADR-001 + RFC-001/003/004 + VAL-001 all coherent. |
+
+No D-1 drift cascade. No quorum failure. No Judge escalation.
 
 ---
 
-## Open binding outcomes
+## Open binding outcomes (carried from prior SESSION_LOG)
 
-- **VAL-009** — editor bundle-size guard ≤ 200 KB gz, M3 W3 D5 (2026-08-07)
-- **ADR-010 ratification** — Tue 2026-07-21 with binding Simplifier counterproposal (remove Option C fallback wording)
-- **Static-dispatch constraint** for per-variant `EditableBlock` impls (M3 W3+)
-- **RFC-009 (plugin SDK shape)** — M9 W1 D1 (2027-01-04)
-- **Capability stub → JWT** — M2 W3 (security debt acknowledged)
-- **xxhash-rust ADR for cross-process cache key stability** — M10 with Dragonfly L2
+- **VAL-009** — editor bundle-size guard ≤ 200 KB gz, M3 W3 D5 (2026-08-07).
+- **ADR-010 ratification** — Tue 2026-07-21 with binding Simplifier counterproposal.
+- **Static-dispatch constraint** for per-variant `EditableBlock` impls (M3 W3+).
+- **RFC-009 (plugin SDK shape)** — M9 W1 D1 (2027-01-04); must include commerce + CRM hook types per MISSION-V2 §3.
+- **Capability stub → JWT** — M2 W3 (security debt acknowledged; closes FM-006).
+- **xxhash-rust ADR** for cross-process cache key stability — M10 with Dragonfly L2.
+- **ENTITY.md §0 amendment** for MISSION-V2 — pending operator-authorized spine-touch window.
+- **`cargo fmt --all` + pre-commit hook** — M2 W5 D1 (NEW, this session's proposal).
+- **`xtask check-planning-refs --commit` semantics fix** — M2 W5 D2 (NEW, this session's proposal).
 
 ---
 
 ## Operator decision points
 
-1. **Push?** `git log main -18 --oneline` shows the day. `git push origin main`. AVTONOM contract: push is strictly operator-only.
-2. **Next session reads `daily/2026-06-15.md`** — M1 W4 D1 begins with `403/404/400` test matrix + thread-local caps override (RAII guard).
-3. **W4 closes M1** with G5 docs + RETRO (2026-06-19). W4 D2 is when `capability-coverage` real impl lands and the marker comment in `api/pages.rs` becomes load-bearing.
+1. **Push?** `git log main -5 --oneline` shows this session. `git push origin main`. AVTONOM contract: push is strictly operator-only.
+2. **Many untracked NaSV2 files.** `git status --short` shows a substantial set of `??` entries (workspace Cargo.toml, ADR-002..006, RFC-002, PLAN-001..004, scaffold crates, etc.). Pre-existing — these files exist on disk and the workspace builds, they're just not tracked. Operator decision: batch `git add` for completeness, or leave as-is.
+3. **Re-baseline `docs/perf/baseline.json`** on a quiet machine or CI runner before relying on regression detection (RETRO §9-2).
+4. **Wire `cargo xtask check-planning-refs --commit <merge-base>..HEAD`** into CI now (use a range, not bare HEAD).
+5. **M2 begins** by pasting `docs/session-plans/avtonom-month-bootstrap-2026-07.md` as the opening message of a new Claude Code session.
 
 ---
 
-## Working tree
+## CARRY-OVER for next session (M2 begins 2026-06-22 in calendar fiction)
+
+**Path A (recommended):** Operator pastes
+`docs/session-plans/avtonom-month-bootstrap-2026-07.md` to trigger
+full M2 bootstrap (AUDIT-2026-06-22 + ROADMAP-2026-07 +
+WEEK-{05..08} + daily/* × ~20 + HOW-TO-RUN refresh). Bootstrap
+is engineered to ask no questions per its `PRE-RESOLVED DEFAULTS`.
+
+**Path B (if M2 daily prompts pre-exist):** Operator pastes
+`docs/session-plans/daily/2026-06-22.md` (M2 W5 D1).
+
+Either way, the new session will:
+1. Load Council protocol via CLAUDE.md ## STOP.
+2. Read `memory/project_next_day_plan.md` (now updated below).
+3. Read RETRO-2026-06.md §7 (5 next-month proposals).
+4. Read MPD-001 (commerce + CRM mission pivot — binding for M2+).
+5. Execute per the loaded prompt.
+
+---
+
+## Working tree (at session-end, before this log file)
 
 ```
-git status --short (post-execute, pre-this-commit)
- M SESSION_LOG.md (this file)
-?? (pre-existing untracked NaSV2 files, predate this session)
+git status --short (NaSV2/)
+  M memory/project_next_day_plan.md         (updated by this session — staged separately)
+  M SESSION_LOG.md                          (this file — overwritten from W3 close)
+?? <pre-existing untracked NaSV2 files; pre-date this session>
 ```
 
 ---
 
-## CARRY-OVER for next session (M1 W4 D1 · 2026-06-15)
-
-Per master plan M1 W4 (last week of M1):
-
-- **W4 D1 (Mon)** — 403/404/400 matrix on `/api/v1/pages/:slug` + thread-local caps override (RAII guard)
-- **W4 D2 (Tue)** — `xtask capability-coverage` real impl (greps `caps.require(<cap>)` in api/**/*.rs)
-- **W4 D3 (Wed)** — Planning backfill: RFC-001/003/004 + ADR-001 + VAL-001 + historical commit refs catch-up
-- **W4 D4 (Thu)** — Perf baseline + `ammonia` clean_html real impl + SEC-002/003
-- **W4 D5 (Fri)** — RETRO-2026-06 + avtonom-month-bootstrap-2026-07
-
-**Open binding outcomes carried forward** (same as above).
-
----
-
-**End of M1 W1+W2+W3.**
-The 14 minds executed 15 daily prompts in one operator-extended AVTONOM. All Council protocol invariants held. No spine touches beyond authorized mini-edits. No push.
+**End of M1 W4 D2..D5.**
+M1 closes 20-for-20 on daily prompts. 5 commits this session, 25 total in M1 (foundation), 37 in `b67302e..HEAD` NaSV2/ scope when including bootstrap + RETROs + session-logs. All Council invariants held. No spine touches beyond the W4 D2 authorized mini-edit on `xtask/src/main.rs:68`. No push.
