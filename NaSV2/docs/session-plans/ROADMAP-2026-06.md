@@ -143,3 +143,39 @@ proceed in series safely (or in parallel if extra hands appear).
 13. ~14% cumulative WP parity (M1 6% + M2 8%)
 14. RETRO-2026-07.md + `avtonom-month-bootstrap-2026-07.md` exist
     on 2026-07-17
+
+---
+
+## B7 · MPD-001 weave overlay (additive · post-2026-05-26 mission expansion)
+
+> Source: `docs/governance/master-plan-diffs/MPD-001-commerce-crm-pivot.md`
+> ratified 2026-05-26. The M2 plan above was authored 2026-05-25 (one
+> day pre-MPD). This section pins the **additive** delta that
+> interleaves commerce + CRM threads without disturbing G1..G5.
+>
+> **Detail:** `docs/session-plans/MPD-001-M2-WEAVE.md` (full overlay
+> spec — restructure, aggregate seeds, foundation RFCs, capability
+> enum delta, exit criteria addendum, M3 forward link).
+
+### B7.1 · Affected days (additive ADD-ON, deferrable)
+
+| Day | Slot | Budget | Output |
+|---|---|---:|---|
+| 2026-06-29 (W6 D1) | post-P1 | 30 min | Domain module restructure (content/auth/commerce/crm/shared subdirs) |
+| 2026-07-14 (W8 D2) | post-P1 | 1.5 h | `commerce::product::Product` aggregate seed |
+| 2026-07-15 (W8 D3) | post-P1 | 1.0 h | `crm::customer::Customer` aggregate seed |
+| 2026-07-16 (W8 D4) | post-P1 | 1.0 h | RFC-007 commerce-foundation + RFC-008 crm-foundation + 4 capability variants |
+| 2026-07-17 (W8 D5) | RETRO | 30 min | RETRO-2026-07 commerce + CRM subsection + M3 W1 forecast |
+
+**Total ADD-ON:** 4.5 h on top of 160 h M2 capacity (+2.8 %). Within
+docs allocation; defers cleanly if content-track P1..PN overruns.
+
+### B7.2 · Anti-goals (commerce + CRM in M2)
+
+- ❌ No `Order`, `Lead`, `Contact`, `ProductVariant` aggregates
+- ❌ No commerce migrations or endpoints (M3 W1+)
+- ❌ No new workspace Cargo.toml deps
+
+### B7.3 · Exit criteria addendum
+
+Items 15..19 of `MPD-001-M2-WEAVE.md §5` extend B6.1..B6.14 above.

@@ -51,3 +51,13 @@ as P0 before JWT work starts.
 | pgbouncer transaction-mode incompatible with prepared statements | sqlx already configured for runtime SQL (no `query!`); revisit if perf bench shows prepared-statement gap |
 | `with_tenant` lifetime issues with closure capturing `&pool` | use `impl AsyncFn(...)` or boxed-future trait; sqlx examples confirmed the pattern |
 | Repo error mapping pollutes AppError variants | introduce `infrastructure::PgError` internal type; map at the trait-impl boundary to `AppError` |
+
+## MPD-001 weave overlay (W6)
+
+| Day | ADD-ON | Budget | Spec |
+|---|---|---:|---|
+| 2026-06-29 (D1) | Domain module restructure (`content/`, `auth/`, `commerce/`, `crm/`, `shared/` subdirs + `lib.rs` re-exports) | 30 min | `docs/session-plans/MPD-001-M2-WEAVE.md §2` |
+
+Restructure is mechanical (move + re-export); MUST keep `cargo check`
+green. Hard stop: revert if not green at 15-min mark and defer to D2
+CARRY-OVER.

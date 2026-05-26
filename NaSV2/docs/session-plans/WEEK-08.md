@@ -56,3 +56,16 @@ deliberately deferred — track in next-month AUDIT A3.
 | CSRF cookie + double-submit token feels janky for SPAs | header `X-CSRF-Token` mirrors cookie; SPA reads cookie via cookie-parser, echoes in header; tests confirm |
 | Deletion via Archive doesn't free slug for reuse | tomorrow's reuse: slug-versioning ADR; M2 closes Archive as terminal |
 | RETRO drifts into "fix it now" mode | reserve W8 D5 strictly for RETRO + bootstrap; no feature edits |
+
+## MPD-001 weave overlay (W8)
+
+| Day | ADD-ON | Budget | Spec |
+|---|---|---:|---|
+| 2026-07-14 (D2) | `commerce::product::Product` aggregate seed + 3 unit tests | 1.5 h | `MPD-001-M2-WEAVE.md §3.1` |
+| 2026-07-15 (D3) | `crm::customer::Customer` aggregate seed + 2 unit tests | 1.0 h | `MPD-001-M2-WEAVE.md §3.2` |
+| 2026-07-16 (D4) | RFC-007 commerce-foundation + RFC-008 crm-foundation + capability enum +4 variants | 1.0 h | `MPD-001-M2-WEAVE.md §4` |
+| 2026-07-17 (D5 RETRO) | RETRO-2026-07 commerce + CRM thread progress subsection + M3 W1 forecast | 30 min | `MPD-001-M2-WEAVE.md §1, §8` |
+
+All four are pure-domain / pure-docs — no migrations, no repo impls,
+no endpoints. Each ADD-ON is deferrable to next-day CARRY-OVER if
+content-track overruns.

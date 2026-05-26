@@ -206,3 +206,120 @@ git status --short (NaSV2/)
 
 **End of M1 W4 D2..D5.**
 M1 closes 20-for-20 on daily prompts. 5 commits this session, 25 total in M1 (foundation), 37 in `b67302e..HEAD` NaSV2/ scope when including bootstrap + RETROs + session-logs. All Council invariants held. No spine touches beyond the W4 D2 authorized mini-edit on `xtask/src/main.rs:68`. No push.
+
+---
+
+# SESSION_LOG ADDENDUM — Second AVTONOM call · 2026-05-26 · bootstrap verify + MPD-001 weave
+
+> **Mode:** AVTONOM (operator: `AVTONOM: avtonom-month-bootstrap-2026-07.md`).
+> **Trigger:** operator pasted the M2 bootstrap prompt as opening message.
+> **Outcome:** **1 local commit on `main`, no push.**
+> **Master-plan progress:** M1 stays closed; M2 plan now MPD-001-aware.
+
+## Decision: verify + weave (not regenerate)
+
+The first AVTONOM call of 2026-05-26 (`d42a55a` and the chain before it)
+already produced all bootstrap artifacts. Re-running Phase A..E would
+either overwrite reviewed content or produce duplicates. **AI-Default
+applied:** P0 V1..V4 verify gate → MPD-001 weave overlay → single
+commit. Detail in `docs/session-plans/2026-05-26-AVTONOM-bootstrap-verify.md`.
+
+## P0 verification gate (all green)
+
+| Gate | Wall | Log |
+|---|---:|---|
+| V1 cargo check --workspace --all-targets | 2 m 01 s | `docs/session-logs/avtonom-2026-05-26-cargo-check.log` |
+| V2 cargo fmt --all --check | < 5 s | `docs/session-logs/avtonom-2026-05-26-cargo-fmt.log` |
+| V3 cargo clippy --workspace --all-targets -- -D warnings | ~3 m | `docs/session-logs/avtonom-2026-05-26-cargo-clippy.log` |
+| V4 cargo test --workspace --lib --no-fail-fast | ~1 m | `docs/session-logs/avtonom-2026-05-26-cargo-test.log` |
+
+All four green at exit 0. No iterations needed.
+
+## MPD-001 weave overlay applied
+
+10 file ops, all non-spine, all additive:
+
+| # | Op | Path |
+|---:|---|---|
+| 1 | NEW | `docs/session-plans/MPD-001-M2-WEAVE.md` |
+| 2 | EDIT (+§B7) | `docs/session-plans/ROADMAP-2026-06.md` |
+| 3 | EDIT (+overlay table) | `docs/session-plans/WEEK-06.md` |
+| 4 | EDIT (+overlay table) | `docs/session-plans/WEEK-08.md` |
+| 5 | EDIT (+§A12.5) | `docs/session-plans/AUDIT-2026-06-22.md` |
+| 6 | EDIT (+ADD-ON: restructure) | `docs/session-plans/daily/2026-06-29.md` |
+| 7 | EDIT (+ADD-ON: Product seed) | `docs/session-plans/daily/2026-07-14.md` |
+| 8 | EDIT (+ADD-ON: Customer seed) | `docs/session-plans/daily/2026-07-15.md` |
+| 9 | EDIT (+ADD-ON: RFCs + caps) | `docs/session-plans/daily/2026-07-16.md` |
+| 10 | EDIT (§3 + footer) | `memory/project_next_day_plan.md` |
+
+Plus NEW `docs/session-plans/2026-05-26-AVTONOM-bootstrap-verify.md`
+(this session's plan/verify document).
+
+**Weave budget:** 4.5 h total across W6 D1 + W8 D2/D3/D4/D5 — all marked
+OPTIONAL and deferrable to next-day CARRY-OVER.
+
+## AI-Defaults (this call) — full table in verify doc §"AI-Defaults applied"
+
+| # | Decision | Choice |
+|---:|---|---|
+| 1 | Re-run on complete artifacts | Verify + weave (not regenerate) |
+| 2 | Weave shape | Additive ADD-ON (not rewrite) |
+| 3 | Restructure date | W6 D1 (2026-06-29) per MPD-001 §3 |
+| 4 | Aggregate scope | Seed only (Product W8 D2 + Customer W8 D3) |
+| 5 | RFC placement | W8 D4 alongside ADR-009 + RFC-005 + RFC-006 |
+| 6 | git push | Never (AVTONOM rule) |
+
+## Skipped / deliberate
+
+| Item | Reason |
+|---|---|
+| Re-gen of AUDIT/ROADMAP/WEEK/daily | Already complete from first call (`d42a55a`); idempotent. |
+| ENTITY.md §0 amendment | Spine; AVTONOM forbids. |
+| Content-track P1..PN edits in dailies | Out-of-scope; would destroy review work. |
+| `apps/server/src/main.rs` pre-existing modification | Spine file. NOT my edit. Logged; untouched. SKIP: spine-touch on apps/server/src/main.rs (pre-existing modification, not from this call). |
+
+## Drift detectors
+
+D-1 green · D-6 green · D-8 green · D-9 green · D-10 repaired.
+No D-* cascade. No quorum failure.
+
+## Operator decision points (carried forward)
+
+1. **Push?** Now `b67302e..HEAD` includes both M1 W4 D2..D5 chain
+   AND this verify+weave commit. Operator-only.
+2. **M2 trigger.** Open Claude Code on 2026-06-22 and paste
+   `docs/session-plans/daily/2026-06-22.md`. Weave ADD-ONs trigger
+   on 06-29, 07-14, 07-15, 07-16, 07-17.
+3. **Pre-existing untracked files** — same as prior session note (line 169 above). Unchanged.
+
+## Working tree at end (this call's contribution)
+
+```
+M docs/session-plans/ROADMAP-2026-06.md
+M docs/session-plans/WEEK-06.md
+M docs/session-plans/WEEK-08.md
+M docs/session-plans/AUDIT-2026-06-22.md
+M docs/session-plans/daily/2026-06-29.md
+M docs/session-plans/daily/2026-07-14.md
+M docs/session-plans/daily/2026-07-15.md
+M docs/session-plans/daily/2026-07-16.md
+M memory/project_next_day_plan.md
+M SESSION_LOG.md           (this addendum)
+?? docs/session-plans/MPD-001-M2-WEAVE.md
+?? docs/session-plans/2026-05-26-AVTONOM-bootstrap-verify.md
+?? docs/session-logs/avtonom-2026-05-26-cargo-*.log (gitignored — not committed)
+```
+
+Plus pre-existing dirty state (NOT my edits): `apps/server/src/main.rs`,
+parent-repo dirty files (`../ENTITY.md`, `../ops/caddy/...`, `../ТЗ.html`),
+many untracked files from prior sessions.
+
+## Time budget (this call)
+
+Started ~11:50 · Ended ~12:25 · Wall ~35 min · Phases: PF + P0 + Weave + Report + Commit · Hard stops: 0 · SKIPs: 1 (spine-touch on apps/server/src/main.rs — pre-existing).
+
+---
+
+**End of second AVTONOM call of 2026-05-26.** M2 plan now carries
+commerce + CRM thread overlay per MPD-001. Bootstrap verified
+idempotent. Council protocol upheld. No push.

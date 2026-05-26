@@ -78,8 +78,16 @@ commerce + CRM threads per MPD-001 §3 revised theme for M2.
 
 **Alternative trigger (if M2 daily prompts pre-exist already):**
 operator pastes `docs/session-plans/daily/2026-06-22.md` (M2 W5 D1).
-Currently a CONTENT-track baseline exists; bootstrap regenerates
-the M2 prompts with commerce + CRM interleaved.
+
+**Update 2026-05-26 (second AVTONOM call of the day):** MPD-001 weave
+overlay applied to existing CONTENT-track baseline.
+See `docs/session-plans/MPD-001-M2-WEAVE.md` for the spec.
+Four daily prompts (`2026-06-29`, `2026-07-14`, `2026-07-15`,
+`2026-07-16`) gained `## MPD-001 WEAVE ADD-ON` sections (4.5 h
+cumulative budget, additive, each deferrable). ROADMAP §B7, WEEK-06
+overlay, WEEK-08 overlay, AUDIT §A12.5 updated to reference the
+weave doc. So either trigger (bootstrap re-paste or first daily
+2026-06-22) will pick up the weave automatically.
 
 ### M2 forecast (per MPD-001 §3 revised theme)
 
@@ -218,5 +226,6 @@ proposals for M2.
 
 **End of next-day plan.**
 M1 closed 2026-05-26. M2 begins on operator trigger.
+MPD-001 M2 weave overlay applied 2026-05-26 (second AVTONOM session).
 Append-only drift entries to `memory/orchestrator_drift_log.md` if
 any D-* detector trips.
