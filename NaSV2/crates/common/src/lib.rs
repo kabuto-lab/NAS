@@ -5,8 +5,11 @@
 
 #![forbid(unsafe_code)]
 
+pub mod error;
 pub mod ids;
 pub mod page;
+pub mod sanitize;
 
+pub use error::AppError;
 pub use ids::{MediaId, PostId, RequestId, RoleId, SiteId, TenantId, UserId};
 pub use page::Page;
