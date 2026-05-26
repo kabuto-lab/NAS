@@ -8,14 +8,17 @@
 #![forbid(unsafe_code)]
 
 pub mod block;
+pub mod capability;
 pub mod post;
+pub mod role;
 pub mod site;
-// pub mod user;          // W2 D3
-// pub mod role;          // W2 D3
-// pub mod capability;    // W2 D3
+pub mod user;
 // pub mod taxonomy;      // deferred to month 2
 // pub mod media;         // deferred
 
 pub use block::Block;
+pub use capability::{Capability, CapabilitySet};
 pub use post::{CustomPostType, Post, PostSlug, PostStatus};
+pub use role::Role;
 pub use site::{Site, SiteSlug};
+pub use user::{Email, User};
