@@ -1,0 +1,1018 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AX•CMS · Совет 14 умов — что это, как работает, как запускать</title>
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --bg-2: #141414;
+    --bg-3: #1c1c1c;
+    --bg-4: #202020;
+    --fg: #e8e8e8;
+    --fg-dim: #8a8a8a;
+    --fg-dim-2: #5a5a5a;
+    --gold: #d4af37;
+    --gold-soft: rgba(212,175,55,0.15);
+    --line: #2a2a2a;
+    --line-soft: #1f1f1f;
+    --t1: #d4af37;        /* HEAD + Tier-1 */
+    --t2: #4ec9b0;        /* Tier-2 stability */
+    --t3: #e06c75;        /* Tier-3 adversarial */
+    --t4: #c586c0;        /* Tier-4 evolution */
+    --t5: #6a9955;        /* Tier-5 judge */
+    --tc: #888888;        /* constitution (doctrine) */
+    --warn: #e0a040;
+    --crit: #e06c75;
+    --ok: #6a9955;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--fg); }
+  body {
+    font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    padding: 32px 24px 96px;
+  }
+  code, pre, .mono {
+    font-family: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+    font-size: 12.5px;
+  }
+  code {
+    background: var(--bg-3);
+    padding: 1px 5px;
+    border-radius: 3px;
+    color: #d8c590;
+    border: 1px solid var(--line-soft);
+  }
+  pre {
+    background: var(--bg-3);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 14px 16px;
+    overflow-x: auto;
+    color: #d0c590;
+    line-height: 1.5;
+  }
+  a { color: var(--gold); text-decoration: none; border-bottom: 1px dotted var(--gold); }
+  a:hover { border-bottom-style: solid; }
+  h1, h2, h3, h4 { font-weight: 700; letter-spacing: -0.3px; }
+  h1 { margin: 0 0 6px; font-size: 26px; }
+  h2 {
+    margin: 48px 0 14px;
+    font-size: 18px;
+    color: var(--gold);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--line);
+  }
+  h3 { margin: 28px 0 10px; font-size: 15px; color: var(--fg); }
+  h4 { margin: 18px 0 8px; font-size: 13px; color: var(--fg-dim); text-transform: uppercase; letter-spacing: 1px; }
+  p { margin: 0 0 12px; }
+  ul, ol { margin: 6px 0 14px; padding-left: 22px; }
+  li { margin: 4px 0; }
+  hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+
+  /* ── Layout ───────────────────────────────────────────── */
+  header.page {
+    max-width: 1200px; margin: 0 auto 28px;
+    padding-bottom: 18px; border-bottom: 1px solid var(--line);
+  }
+  header.page .sub { color: var(--fg-dim); font-size: 13px; margin-top: 4px; }
+  header.page .meta {
+    margin-top: 14px; display: flex; gap: 10px; flex-wrap: wrap; font-size: 11px;
+  }
+  .pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 3px 10px; border-radius: 99px;
+    background: var(--bg-2); border: 1px solid var(--line);
+    color: var(--fg-dim);
+  }
+  .pill .dot { width: 8px; height: 8px; border-radius: 50%; }
+  main { max-width: 1200px; margin: 0 auto; }
+
+  /* ── TOC ───────────────────────────────────────────────── */
+  nav.toc {
+    background: var(--bg-2); border: 1px solid var(--line);
+    border-radius: 8px; padding: 14px 18px; margin-bottom: 32px;
+  }
+  nav.toc h4 { margin-top: 0; color: var(--gold); }
+  nav.toc ol { columns: 2; column-gap: 32px; margin: 0; padding-left: 22px; }
+  nav.toc li { margin: 3px 0; }
+  nav.toc a { border-bottom: none; }
+  nav.toc a:hover { color: var(--fg); }
+  @media (max-width: 720px) { nav.toc ol { columns: 1; } }
+
+  /* ── Section cards ─────────────────────────────────────── */
+  section.card {
+    background: var(--bg-2); border: 1px solid var(--line);
+    border-radius: 8px; padding: 22px 26px; margin-bottom: 24px;
+  }
+  section.card.warn { border-left: 4px solid var(--warn); }
+  section.card.crit { border-left: 4px solid var(--crit); }
+  section.card.ok   { border-left: 4px solid var(--ok); }
+
+  /* ── Tables ────────────────────────────────────────────── */
+  table {
+    width: 100%; border-collapse: collapse; margin: 12px 0 18px;
+    font-size: 12.5px;
+  }
+  th, td {
+    text-align: left; padding: 7px 10px;
+    border-bottom: 1px solid var(--line-soft); vertical-align: top;
+  }
+  th { color: var(--gold); font-weight: 600; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  tr:hover td { background: var(--bg-3); }
+
+  /* ── Entity grid ───────────────────────────────────────── */
+  .ent-grid {
+    display: grid; gap: 14px;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    margin-top: 16px;
+  }
+  .ent {
+    background: var(--bg-3); border: 1px solid var(--line);
+    border-left-width: 4px; border-radius: 6px;
+    padding: 14px 16px;
+  }
+  .ent.t1 { border-left-color: var(--t1); }
+  .ent.t2 { border-left-color: var(--t2); }
+  .ent.t3 { border-left-color: var(--t3); }
+  .ent.t4 { border-left-color: var(--t4); }
+  .ent.t5 { border-left-color: var(--t5); }
+  .ent .name {
+    font-weight: 700; font-size: 13px; letter-spacing: 0.5px;
+    text-transform: uppercase; margin-bottom: 2px;
+  }
+  .ent.t1 .name { color: var(--t1); }
+  .ent.t2 .name { color: var(--t2); }
+  .ent.t3 .name { color: var(--t3); }
+  .ent.t4 .name { color: var(--t4); }
+  .ent.t5 .name { color: var(--t5); }
+  .ent .role { font-size: 11.5px; color: var(--fg-dim); margin-bottom: 8px; font-style: italic; }
+  .ent .ask {
+    font-size: 12px; color: var(--fg);
+    border-top: 1px dashed var(--line); padding-top: 8px; margin-top: 8px;
+  }
+  .ent .ask b { color: var(--fg-dim); font-weight: 600; }
+
+  /* ── Topology diagram ──────────────────────────────────── */
+  .topo {
+    background: var(--bg-3); border: 1px solid var(--line);
+    border-radius: 8px; padding: 18px;
+    font-family: 'JetBrains Mono', Consolas, monospace;
+    font-size: 12px; line-height: 1.5;
+    color: #c5c5c5; white-space: pre;
+    overflow-x: auto;
+  }
+
+  /* ── Step list ─────────────────────────────────────────── */
+  .steps { counter-reset: step; padding: 0; margin: 0; list-style: none; }
+  .steps li {
+    counter-increment: step;
+    background: var(--bg-3); border: 1px solid var(--line);
+    border-radius: 6px; padding: 14px 18px 14px 56px;
+    position: relative; margin: 0 0 10px;
+  }
+  .steps li::before {
+    content: counter(step);
+    position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+    width: 28px; height: 28px; border-radius: 50%;
+    background: var(--gold-soft); color: var(--gold);
+    display: grid; place-items: center;
+    font-family: 'JetBrains Mono', Consolas, monospace;
+    font-weight: 700; font-size: 13px;
+    border: 1px solid var(--gold);
+  }
+  .steps li .step-title { font-weight: 600; font-size: 13.5px; color: var(--fg); }
+  .steps li .step-body { font-size: 12.5px; color: var(--fg-dim); margin-top: 4px; }
+  .steps li .step-body code { color: #d8c590; }
+
+  /* ── Callouts ──────────────────────────────────────────── */
+  .callout {
+    border-left: 3px solid var(--gold); background: rgba(212,175,55,0.05);
+    padding: 12px 16px; margin: 14px 0; border-radius: 0 6px 6px 0;
+  }
+  .callout.warn { border-left-color: var(--warn); background: rgba(224,160,64,0.07); }
+  .callout.crit { border-left-color: var(--crit); background: rgba(224,108,117,0.07); }
+  .callout.ok   { border-left-color: var(--ok);   background: rgba(106,153,85,0.07); }
+  .callout b { color: var(--gold); }
+  .callout.warn b { color: var(--warn); }
+  .callout.crit b { color: var(--crit); }
+  .callout.ok   b { color: var(--ok); }
+
+  /* ── Footer ────────────────────────────────────────────── */
+  footer {
+    max-width: 1200px; margin: 48px auto 0; padding-top: 18px;
+    border-top: 1px solid var(--line); font-size: 11.5px; color: var(--fg-dim);
+    text-align: center;
+  }
+  footer .tag { color: var(--gold); }
+  @media print {
+    body { background: white; color: black; padding: 12px; }
+    section.card, .ent, .topo, pre, code { background: white !important; color: black !important; border-color: #888 !important; }
+    h2 { color: black; border-bottom-color: #888; }
+  }
+</style>
+</head>
+<body>
+
+<header class="page">
+  <h1>AX•CMS · Совет 14-ти умов</h1>
+  <div class="sub">
+    Что это · как работает · как запускать. Постоянная многосущностная инженерная цивилизация,
+    которая строит AX•CMS — Rust-замену WordPress на горизонте 12 месяцев.
+  </div>
+  <div class="meta">
+    <span class="pill"><span class="dot" style="background:var(--gold)"></span>governance v1.0</span>
+    <span class="pill"><span class="dot" style="background:var(--ok)"></span>принят 2026-05-26</span>
+    <span class="pill"><span class="dot" style="background:var(--fg-dim)"></span>сопровождающий документ для <code>docs/governance/</code></span>
+  </div>
+</header>
+
+<main>
+
+<nav class="toc">
+  <h4>Содержание</h4>
+  <ol>
+    <li><a href="#что-это">Что это</a></li>
+    <li><a href="#зачем">Зачем — проблема, которую решает Совет</a></li>
+    <li><a href="#топология">Топология — «осьминог» из 14-ти умов</a></li>
+    <li><a href="#сущности">14 сущностей — кто чем занят</a></li>
+    <li><a href="#цикл">Ежедневный цикл Совета (T0–T13)</a></li>
+    <li><a href="#дрейф">10 видов дрейфа — антифрагильность</a></li>
+    <li><a href="#запуск">Как запускать — шаги для оператора</a></li>
+    <li><a href="#режимы">Три режима — MANUAL · SEMIAUTO · AVTONOM</a></li>
+    <li><a href="#файлы">Файлы системы — карта артефактов</a></li>
+    <li><a href="#faq">Частые вопросы</a></li>
+  </ol>
+</nav>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<section class="card" id="что-это">
+<h2>1 · Что это</h2>
+
+<p>
+  Это <b>не</b> чат-бот, который пишет код. Это <b>персистентная многоагентная
+  инженерная когниция</b> — система из 14-ти специализированных «умов»
+  с <i>конфликтующими приоритетами</i>, которая принимает архитектурные
+  решения о продукте AX•CMS на горизонте 12 месяцев.
+</p>
+
+<p>
+  Каждый «ум» — это не персонаж и не roleplay. Это <i>когнитивная
+  специализация</i>, которую AI применяет к одному и тому же артефакту с разных
+  углов. Все 14 умов:
+</p>
+
+<ul>
+  <li>читают одну и ту же 12-месячную карту (<code>WP-PLAN-12-MONTH.html</code>);</li>
+  <li>читают одну и ту же конституцию платформы (<code>ENTITY.md</code>);</li>
+  <li>читают одну и ту же конституцию своего поведения (<code>CONSTITUTION.md</code>);</li>
+  <li>пишут в общую память (<code>memory/</code>) — каждый в своё досье;</li>
+  <li>обязаны <b>спорить</b>. Консенсус с первого раза считается подозрительным.</li>
+</ul>
+
+<div class="callout ok">
+  <b>Главная идея.</b>
+  12-месячные роадмапы умирают не от багов в коде, а от <i>дрейфа</i>:
+  забытых допущений, локальных оптимизаций, фрагментации архитектуры,
+  невидимого технического долга. Совет существует, чтобы дрейф
+  обнаруживать <i>каждый день</i> и <i>чинить</i> в течение фиксированного окна.
+</div>
+
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<section class="card" id="зачем">
+<h2>2 · Зачем — проблема, которую решает Совет</h2>
+
+<p>
+  В одиночку (один «ассистент» = один прогон) AI на длинных проектах
+  деградирует так:
+</p>
+
+<table>
+  <thead><tr><th>Симптом</th><th>Что происходит</th><th>Когда это «прилетит»</th></tr></thead>
+  <tbody>
+    <tr><td>Drift</td><td>Решение M3 противоречит решению M7, ни один документ не зафиксировал переход</td><td>M5–M7</td></tr>
+    <tr><td>Entropy</td><td>Архитектура расползается на 5 слабосвязанных подсистем</td><td>M6+</td></tr>
+    <tr><td>Local optimization</td><td>Перформанс одного хэндлера задушил cache layer</td><td>любой бенчмарк-день</td></tr>
+    <tr><td>Forgotten assumptions</td><td>«мы решили в M2, что …» — но в M9 этого никто не помнит</td><td>M8–M12</td></tr>
+    <tr><td>Invisible debt</td><td>WIP-ADR, который никогда не был ратифицирован, превратился в фактический контракт</td><td>M9+</td></tr>
+    <tr><td>Architecture fragmentation</td><td>Editor → один стек, Theme → другой, Plugin → третий, миграция невозможна</td><td>M10+</td></tr>
+  </tbody>
+</table>
+
+<p>
+  Совет противодействует этому <b>встроенным напряжением</b> (Tension Doctrine,
+  <code>CONSTITUTION.md §2</code>): консенсус с первого захода обязателен к
+  оспариванию. Согласие = ленивая выдача, пока Simplifier не попытался
+  что-нибудь удалить.
+</p>
+
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<section class="card" id="топология">
+<h2>3 · Топология — «осьминог»</h2>
+
+<div class="topo">
+                       ┌──────────────────────┐
+                       │     ОПЕРАТОР         │   ← человек; суверен
+                       │     (единый суверен) │
+                       └──────────┬───────────┘
+                                  │
+                                  ▼
+                       ┌──────────────────────┐
+                       │   КОНСТИТУЦИЯ        │   ← доктрина (4 файла)
+                       │   (неподвижный код)  │      не сущность
+                       └──────────┬───────────┘
+                                  │ связывает
+                                  ▼
+        ┌─────────────────── ГОЛОВА: ORCHESTRATOR ────────────────┐
+        │                                                         │
+        │   Tier-1 · Ядро (всегда на связи)                       │
+        │     ▸ ORCHESTRATOR   — главный архитектор               │
+        │     ▸ FORGEMASTER    — runtime / perf / Rust            │
+        │     ▸ SENTINEL       — отказы / безопасность            │
+        │                                                         │
+        │   Tier-2 · Стабильность (ежедневно)                     │
+        │     ▸ SIMPLIFIER     — анти-overengineering             │
+        │     ▸ HISTORIAN      — память решений                   │
+        │     ▸ ECONOMIST      — стоимость / сложность            │
+        │                                                         │
+        │   Tier-3 · Атака (по триггеру / еженедельно)            │
+        │     ▸ ADVERSARY      — угрозы / эксплоиты               │
+        │     ▸ CHAOS          — partition / cascading failure    │
+        │     ▸ TEST PILOT     — нагрузка / насыщение             │
+        │                                                         │
+        │   Tier-4 · Эволюция (помесячно / по триггеру)           │
+        │     ▸ MIGRATOR       — риск переписывания               │
+        │     ▸ ECOSYSTEM      — SDK / сторонние                  │
+        │     ▸ PRODUCTOR      — UX / DX / эргономика             │
+        │                                                         │
+        │   Tier-5 · Мета (только на тупике)                      │
+        │     ▸ JUDGE          — детерминированный арбитр         │
+        └─────────────────────────────────────────────────────────┘
+</div>
+
+<p style="margin-top:14px;">
+  <b>Оператор стоит вне Совета.</b> Его прямое указание в живой сессии
+  перебивает любую сущность и любое правило — кроме трёх жёстких ограничений
+  (<code>CONSTITUTION.md §12</code>): <code>git push</code> только по явной
+  команде, изменения spine-файлов только по явной команде, и
+  нарушения <code>ENTITY.md §3</code> (стек) не сохраняются в постоянную память.
+</p>
+
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<section class="card" id="сущности">
+<h2>4 · 14 сущностей — кто чем занят</h2>
+
+<p>
+  Каждая карточка — ум Совета. Цвет слева = уровень (Tier).
+  Полное досье в <code>docs/governance/ENTITY_SYSTEM.md</code>.
+</p>
+
+<div class="ent-grid">
+
+  <div class="ent t1">
+    <div class="name">ORCHESTRATOR</div>
+    <div class="role">Tier-1 · ГОЛОВА · главный архитектор</div>
+    <p>Держит весь 12-месячный план, граф зависимостей, философию платформы. Мыслит годами и экосистемами, не деталями.</p>
+    <div class="ask"><b>Спрашивает:</b> «Это станет узким горлом к M9? Это переживёт мультитенантность?»</div>
+  </div>
+
+  <div class="ent t1">
+    <div class="name">FORGEMASTER</div>
+    <div class="role">Tier-1 · runtime / perf / Rust</div>
+    <p>Сеньор Rust-инженер. Считает аллокации, lock surface, cache lines, async overhead, throughput.</p>
+    <div class="ask"><b>Спрашивает:</b> «Где лишние аллокации? Этот Arc<Mutex<_>> действительно нужен? Какой бенч это докажет?»</div>
+  </div>
+
+  <div class="ent t1">
+    <div class="name">SENTINEL</div>
+    <div class="role">Tier-1 · отказы / безопасность</div>
+    <p>«Производственная паранойя». Моделирует обвалы, эксплоиты, rollback, observability gaps.</p>
+    <div class="ask"><b>Спрашивает:</b> «Как это сломается? Что если Dragonfly недоступен 30 минут? Заметит ли monitoring до пэйджа?»</div>
+  </div>
+
+  <div class="ent t2">
+    <div class="name">SIMPLIFIER</div>
+    <div class="role">Tier-2 · анти-overengineering</div>
+    <p>Самая недооценённая сущность. Удаляет лишние абстракции прежде, чем они приживутся.</p>
+    <div class="ask"><b>Спрашивает:</b> «Почему нельзя проще? Что произойдёт, если удалить этот слой?»</div>
+  </div>
+
+  <div class="ent t2">
+    <div class="name">HISTORIAN</div>
+    <div class="role">Tier-2 · память решений</div>
+    <p>Ведёт <code>decision-graph.md</code>. Anti-amnesia модуль: следит, чтобы новые ADR не противоречили старым тихо.</p>
+    <div class="ask"><b>Спрашивает:</b> «Это уже отвергалось? Кто supersedes кого?»</div>
+  </div>
+
+  <div class="ent t2">
+    <div class="name">ECONOMIST</div>
+    <div class="role">Tier-2 · стоимость / сложность</div>
+    <p>Считает $/месяц, engineer-weeks, MTTR, кривые масштабирования. Отказывает в «бесконечно-масштабируемых» претензиях без матмодели.</p>
+    <div class="ask"><b>Спрашивает:</b> «Сколько это стоит при 10K тенантов? Окупается ли?»</div>
+  </div>
+
+  <div class="ent t3">
+    <div class="name">ADVERSARY</div>
+    <div class="role">Tier-3 · угрозы / эксплоиты</div>
+    <p>Моделирует умного атакующего с доступом к исходникам. STRIDE, OWASP, supply chain, multi-tenant leakage.</p>
+    <div class="ask"><b>Спрашивает:</b> «Может ли тенант A прочитать данные тенанта B? Где race condition в RLS?»</div>
+  </div>
+
+  <div class="ent t3">
+    <div class="name">CHAOS</div>
+    <div class="role">Tier-3 · partition / cascading</div>
+    <p>Моделирует разрывы сети, дисковые тормоза, потерянные сообщения, cache stampede, thundering herd.</p>
+    <div class="ask"><b>Спрашивает:</b> «Что если NATS теряет 10% сообщений инвалидации? Что после network heal?»</div>
+  </div>
+
+  <div class="ent t3">
+    <div class="name">TEST PILOT</div>
+    <div class="role">Tier-3 · нагрузка / насыщение</div>
+    <p>Где p99 при 80% насыщении? Head-of-line blocking? Кривые насыщения. Среднее всегда обманывает — смотрит хвост.</p>
+    <div class="ask"><b>Спрашивает:</b> «На какой RPS этот хэндлер начинает деградировать?»</div>
+  </div>
+
+  <div class="ent t4">
+    <div class="name">MIGRATOR</div>
+    <div class="role">Tier-4 · риск переписывания</div>
+    <p>На горизонте 18 мес. — какие подсистемы потребуют rewrite? Semver impact. Vendor lock-in. WP-import fidelity.</p>
+    <div class="ask"><b>Спрашивает:</b> «Если мы поменяем этот API через полгода — что будет с плагинами?»</div>
+  </div>
+
+  <div class="ent t4">
+    <div class="name">ECOSYSTEM</div>
+    <div class="role">Tier-4 · SDK / сторонние</div>
+    <p>Эргономика SDK для плагинов и тем. CMS умирают без экосистемной гравитации — здесь это первичная забота.</p>
+    <div class="ask"><b>Спрашивает:</b> «Сколько LOC «hello-world plugin»? Авторы плагинов это поймут?»</div>
+  </div>
+
+  <div class="ent t4">
+    <div class="name">PRODUCTOR</div>
+    <div class="role">Tier-4 · UX / DX / эргономика</div>
+    <p>Время до первой публикации. Понятность CLI-ошибок. Чтобы система не стала технически блестящей, но непользуемой.</p>
+    <div class="ask"><b>Спрашивает:</b> «Сможет ли новый автор опубликовать пост за 5 минут?»</div>
+  </div>
+
+  <div class="ent t5">
+    <div class="name">JUDGE</div>
+    <div class="role">Tier-5 · арбитр</div>
+    <p>Вызывается <b>только при тупике</b>. Не голосует — выполняет детерминированный 8-шаговый алгоритм фильтров (CONSTITUTION §7).</p>
+    <div class="ask"><b>Спрашивает:</b> «Какая позиция стоит на более высокой ступени Priority Ladder?»</div>
+  </div>
+
+  <div class="ent t5" style="border-left-color: var(--tc); background: var(--bg-4);">
+    <div class="name" style="color: var(--tc);">CONSTITUTION</div>
+    <div class="role">Tier-5 · доктрина (не сущность)</div>
+    <p>Неподвижные законы. Иерархия полномочий, Priority Ladder, 14 Immutables, 14 Forbiddens, 10 Anti-Drift Laws.</p>
+    <div class="ask"><b>Изменяется только:</b> через формальную Motion + явное согласие оператора (§11).</div>
+  </div>
+
+</div>
+
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<section class="card" id="цикл">
+<h2>5 · Ежедневный цикл Совета</h2>
+
+<p>
+  Каждая AVTONOM-сессия (или MANUAL-сессия, разница в режиме) проходит
+  через 14 фаз. Подробное определение в
+  <code>docs/governance/EXECUTION_PROTOCOL.md §0</code>.
+</p>
+
+<ol class="steps">
+  <li>
+    <span class="step-title">T0 — Ритуал старта</span>
+    <div class="step-body">
+      Загрузить ENTITY.md §1, CONSTITUTION.md §0+§3+§4, ENTITY_SYSTEM.md §14
+      (матрица активаций), MEMORY.md, досье Tier-1, вчерашний SESSION_LOG.
+      Выдать первой строкой статус в формате <code>CLAUDE.md §S</code>.
+    </div>
+  </li>
+  <li>
+    <span class="step-title">T1 — Read-before-trust</span>
+    <div class="step-body">
+      Все утверждения в сегодняшнем architect.md о состоянии репозитория
+      («файл X существует», «тест Y зелёный») проверяются <code>Grep</code> /
+      <code>Glob</code> / <code>cargo</code>. Несоответствия чинятся до T2.
+    </div>
+  </li>
+  <li>
+    <span class="step-title">T2 — Orchestrator</span>
+    <div class="step-body">
+      Проверяет соответствие master-plan, граф зависимостей,
+      forward-inheritance к будущим месяцам, дрейф-детекторы.
+      Verdict: <code>approve / approve-with-conditions / reject</code>.
+    </div>
+  </li>
+  <li>
+    <span class="step-title">T3 — Historian Trace</span>
+    <div class="step-body">
+      Обновление <code>decision-graph.md</code>: новые узлы, новые рёбра
+      (Supersedes / Consulted). Проверка prior-rejection. Audit ADR-aging
+      (никакой <code>Status: Proposed</code> старше 7 дней).
+    </div>
+  </li>
+  <li>
+    <span class="step-title">T4 — Forgemaster Memo</span>
+    <div class="step-body">
+      Бюджет аллокаций. Lock surface. Async boundary cost. Bench / VAL slot.
+      Static-dispatch vs dyn. Verdict.
+    </div>
+  </li>
+  <li>
+    <span class="step-title">T5 — Sentinel Risk Audit</span>
+    <div class="step-body">
+      ≥ 1 именованный failure mode с детектором и recovery path.
+      «No concerns» — запрещён (Constitution §2.3). Threat surfaces.
+      Rollback path. Observability hook. Invariants.
+    </div>
+  </li>
+  <li>
+    <span class="step-title">T6 — Simplifier Counterproposal</span>
+    <div class="step-body">
+      Попытка удалить ≥ 1 surface (trait, struct, layer, dep, feature flag).
+      Forgemaster может отклонить, но Simplifier обязан попытаться.
+    </div>
+  </li>
+  <li>
+    <span class="step-title">T7 — Economist Ledger</span>
+    <div class="step-body">
+      Δ infrastructure. Per-tenant scaling curve. Maintenance cost.
+      Учтён ли более дешёвый вариант.
+    </div>
+  </li>
+  <li>
+    <span class="step-title">T8 — Tier-3 (по матрице активаций)</span>
+    <div class="step-body">
+      Auth/RLS/upload/plugins → Adversary. Очереди/cache/edge → Chaos.
+      Hot path → Test Pilot. На «docs-only» дни — все три skip с reason.
+    </div>
+  </li>
+  <li>
+    <span class="step-title">T9 — Tier-4 (помесячно или триггер)</span>
+    <div class="step-body">
+      Migrator + Ecosystem + Productor — на каждом RETRO,
+      на каждом ADR с public API surface, на каждом admin-UI дне.
+      Записывается в monthly README, не в daily.
+    </div>
+  </li>
+  <li>
+    <span class="step-title">T10 — Conflict detect</span>
+    <div class="step-body">
+      Любой <code>reject</code> от любой Tier-1/2/3/4 сущности или
+      противоречие verdict — Judge вызван. 8-шаговый алгоритм
+      (рестейт → ладдер → immutables → forbiddens → drift → выживший).
+      Иначе — ратификация.
+    </div>
+  </li>
+  <li>
+    <span class="step-title">T11 — Execute</span>
+    <div class="step-body">
+      AVTONOM выполняет ратифицированный senior-dev.md.
+      V1..V4 baseline → P0..PN фазы → коммиты на main (без push).
+    </div>
+  </li>
+  <li>
+    <span class="step-title">T12 — Ритуал закрытия</span>
+    <div class="step-body">
+      V1..V4 и 4 <code>xtask</code>-гейта зелёные. SESSION_LOG.md в корне.
+      INDEX.md row → <code>executed</code>. Сущности записывают memory deltas.
+    </div>
+  </li>
+  <li>
+    <span class="step-title">T13 — Anti-Drift Sweep</span>
+    <div class="step-body">
+      D-1, D-3, D-5, D-6, D-7, D-10 проверяются ежедневно. D-2, D-4, D-9
+      — каждую пятницу. D-8 — каждый RETRO. Записывается в
+      <code>memory/orchestrator_drift_log.md</code>.
+    </div>
+  </li>
+</ol>
+
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<section class="card" id="дрейф">
+<h2>6 · 10 видов дрейфа — антифрагильность</h2>
+
+<p>
+  Совет ловит дрейф 10-ю детекторами. Каждый имеет формальное определение
+  (<code>CONSTITUTION.md §6</code> + <code>ROADMAP_ENGINE.md §5</code>) и
+  cadence (daily / weekly / monthly).
+</p>
+
+<table>
+  <thead>
+    <tr><th>ID</th><th>Дрейф</th><th>Детектор</th><th>Cadence</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>D-1</td><td>Scope creep</td><td><code>git diff --stat</code> vs master-plan cell budget</td><td>ежедневно T13</td></tr>
+    <tr><td>D-2</td><td>ADR drift</td><td>Historian sweep over <code>§Consequences</code> vs commits</td><td>пятница</td></tr>
+    <tr><td>D-3</td><td>Capability surface drift</td><td><code>xtask capability-coverage</code></td><td>ежедневно</td></tr>
+    <tr><td>D-4</td><td>Bench drift</td><td>p95 vs прошлая неделя (+5% порог)</td><td>пятница, потом nightly</td></tr>
+    <tr><td>D-5</td><td>Pool-mode drift</td><td>boot validator + <code>/health/pool</code></td><td>каждый старт</td></tr>
+    <tr><td>D-6</td><td>Planning trail drift</td><td><code>xtask check-planning-refs</code></td><td>каждый коммит</td></tr>
+    <tr><td>D-7</td><td>Architecture-layer drift</td><td><code>xtask architecture-check</code></td><td>каждый коммит</td></tr>
+    <tr><td>D-8</td><td>Forecast drift</td><td>MONTH-SKELETON §entering state vs reality</td><td>RETRO</td></tr>
+    <tr><td>D-9</td><td>Decision-graph drift</td><td>Historian compare новый ADR vs ratified</td><td>пятница</td></tr>
+    <tr><td>D-10</td><td>Memory drift</td><td>read-before-trust сравнение memory ↔ live</td><td>T1 каждой сессии</td></tr>
+  </tbody>
+</table>
+
+<div class="callout">
+  <b>Главное правило:</b> обнаружение обязательно, починка имеет время-окно.
+  D-1/D-3/D-5/D-6/D-7 — в тот же день. D-2/D-9 — в течение недели.
+  D-4/D-8/D-10 — на ближайшем RETRO.
+</div>
+
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<section class="card" id="запуск">
+<h2>7 · Как запускать — пошагово для оператора</h2>
+
+<h3>Перед первой сессией</h3>
+
+<p>Совет уже принят (Adoption Pass прошёл 2026-05-26). Файлы на месте:</p>
+
+<pre>NaSV2/
+├── ENTITY.md                 ← конституция платформы (что строим)
+├── CLAUDE.md                 ← runtime-конфиг AI (режимы)
+├── docs/
+│   └── governance/
+│       ├── README.md         ← порядок чтения
+│       ├── CONSTITUTION.md
+│       ├── ENTITY_SYSTEM.md
+│       ├── EXECUTION_PROTOCOL.md
+│       ├── ROADMAP_ENGINE.md
+│       ├── decision-graph.md
+│       └── COUNCIL-GUIDE.html  ← этот файл
+├── memory/                   ← досье сущностей + drift log
+└── docs/session-plans/dailies-v2/
+    ├── INDEX.md              ← таблица 240 дней + статусы
+    ├── README.md             ← контракт v2 формата
+    └── M03-2026-07/...       ← пилотный день уже Council-reviewed</pre>
+
+<h3>Запуск рабочего дня</h3>
+
+<ol class="steps">
+
+  <li>
+    <span class="step-title">Открыть терминал в корне проекта</span>
+    <div class="step-body">
+      Windows: <code>cd F:\Users\a\Documents\_DEV\Tran\ES\barbie\AX\NaSV2</code>.
+      Запустить Claude Code в этой директории. CLAUDE.md загрузится автоматически
+      по правилам Claude Code.
+    </div>
+  </li>
+
+  <li>
+    <span class="step-title">Открыть план дня</span>
+    <div class="step-body">
+      Найти сегодняшнюю дату в <code>docs/session-plans/dailies-v2/INDEX.md</code>.
+      Если статус <code>ratified</code> или <code>adopted-pilot</code> — план готов.
+      Если <code>drafted</code> — сегодняшняя сессия начнётся с Council-pass.
+      Если <code>planned</code> — план ещё не написан (требуется генерация — см. §10 FAQ).
+    </div>
+  </li>
+
+  <li>
+    <span class="step-title">Решить режим работы</span>
+    <div class="step-body">
+      <b>MANUAL</b> — обычное сообщение, без префикса. AI спрашивает по каждому
+      развилке. Безопаснее всего, самый дорогой по вниманию.
+      <br>
+      <b>SEMIAUTO:</b> — префикс <code>SEMIAUTO:</code> перед сообщением.
+      AI пишет план, один MANIFEST на одобрение, потом исполняет без остановок
+      (кроме spine-файлов).
+      <br>
+      <b>AVTONOM:</b> — префикс <code>AVTONOM:</code>. AI работает полностью
+      автономно по сегодняшнему senior-dev.md. spine-файлы пропускаются с
+      записью в SESSION_LOG. <b>git push никогда</b> без явной команды.
+    </div>
+  </li>
+
+  <li>
+    <span class="step-title">Открыть сегодняшний senior-dev.md</span>
+    <div class="step-body">
+      Путь:
+      <code>docs/session-plans/dailies-v2/MNN-YYYY-MM/WN-YYYY-MM-DD/YYYY-MM-DD-dow/senior-dev.md</code>.
+      Файл начинается с <code>AVTONOM: …</code> — это и есть первое сообщение для AI.
+      Скопировать его в чат целиком. (В режиме MANUAL начать с собственного
+      задания; AI всё равно прочитает дневной артефакт.)
+    </div>
+  </li>
+
+  <li>
+    <span class="step-title">Контролировать первую строку ответа</span>
+    <div class="step-body">
+      AI обязан вывести:
+      <code>[mode:MANUAL|SEMIAUTO|AVTONOM] phase:&lt;name&gt; epic:&lt;id&gt; spine:&lt;clear|pending&gt;</code>.
+      Если этой строки нет — отказать в продолжении и попросить повторить
+      ритуал старта (T0 EXECUTION_PROTOCOL).
+    </div>
+  </li>
+
+  <li>
+    <span class="step-title">Дать сессии работать</span>
+    <div class="step-body">
+      Совет проходит T0–T13 автоматически. На каждом spine-touch (см.
+      <code>ENTITY.md §12</code>) сессия в MANUAL/SEMIAUTO остановится и
+      спросит подтверждение. В AVTONOM spine-файлы пропускаются, в SESSION_LOG
+      пишется <code>SKIP: spine-touch on &lt;file&gt;</code>.
+    </div>
+  </li>
+
+  <li>
+    <span class="step-title">По завершении — проверить</span>
+    <div class="step-body">
+      Открыть <code>SESSION_LOG.md</code> в корне.
+      Раздел <b>«Outcome — one line per phase»</b> покажет, какие T-шаги были
+      успешны. Раздел <b>«Recommendations for human review»</b> — что
+      обязательно перечитать. Раздел <b>«Commits made (local, not pushed)»</b>
+      — что ушло в локальные коммиты.
+    </div>
+  </li>
+
+  <li>
+    <span class="step-title">Решить про push</span>
+    <div class="step-body">
+      <code>git log main --oneline -5</code> покажет новые коммиты.
+      <code>git diff main..HEAD</code> — содержимое.
+      Если всё ок: <code>git push</code> (вручную, оператор сам).
+      Если нет: <code>git reset --hard HEAD~N</code> или ручные правки.
+      <b>Совет никогда не пушит сам.</b>
+    </div>
+  </li>
+
+</ol>
+
+<h3>Если что-то пошло не так</h3>
+
+<div class="callout warn">
+  <b>«AI не выдал first-line статус».</b> Прервать. Дать команду:
+  «Reset. Re-read CLAUDE.md §M and docs/governance/EXECUTION_PROTOCOL.md §1.
+  Emit first-line status, then resume.»
+</div>
+
+<div class="callout warn">
+  <b>«AI хочет тронуть spine-файл без причины».</b> Отказать.
+  Прочитать <code>ENTITY.md §12</code> — там полный список.
+  Если spine-edit реально нужен — авторизовать одной строкой в чате
+  с указанием файла и причины; будет зафиксировано в commit message.
+</div>
+
+<div class="callout crit">
+  <b>«AI предложил git push / force / reset --hard / pre-commit skip».</b>
+  Запрещено абсолютно (<code>ENTITY.md §22.4</code>). Отказать.
+  Если это был AVTONOM — он не должен был это предлагать; зафиксировать
+  инцидент в SESSION_LOG, обсудить с оператором как поломку контракта.
+</div>
+
+<div class="callout crit">
+  <b>«AI закоммитил неконсистентные изменения».</b>
+  <code>git log -1 --stat</code> покажет, что попало. Если коммит ещё не пушнут —
+  <code>git reset --soft HEAD~1</code>, разобраться, пере-коммитить корректно.
+  Не использовать <code>git commit --amend</code> на коммитах прошлой сессии.
+</div>
+
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<section class="card" id="режимы">
+<h2>8 · Три режима — MANUAL · SEMIAUTO · AVTONOM</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>Аспект</th>
+      <th style="color:var(--t1)">MANUAL</th>
+      <th style="color:var(--t2)">SEMIAUTO:</th>
+      <th style="color:var(--t3)">AVTONOM:</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><b>Активация</b></td>
+      <td>обычное сообщение</td>
+      <td>префикс <code>SEMIAUTO:</code></td>
+      <td>префикс <code>AVTONOM:</code></td>
+    </tr>
+    <tr>
+      <td><b>Когда оператор отвечает</b></td>
+      <td>на каждую развилку</td>
+      <td>один раз на manifest, потом spine-touch</td>
+      <td>только после сессии</td>
+    </tr>
+    <tr>
+      <td><b>AI-Defaults</b></td>
+      <td>спрашивает</td>
+      <td>применяет, записывает в commit</td>
+      <td>применяет, записывает в SESSION_LOG</td>
+    </tr>
+    <tr>
+      <td><b>Spine-файлы</b></td>
+      <td>стоп + явное OK</td>
+      <td>стоп + явное OK</td>
+      <td>SKIP с записью в SESSION_LOG</td>
+    </tr>
+    <tr>
+      <td><b>Council passes</b></td>
+      <td>все 14 шагов с диалогом</td>
+      <td>все 14 шагов, manifest на финал</td>
+      <td>все 14 шагов без диалога</td>
+    </tr>
+    <tr>
+      <td><b>git push</b></td>
+      <td>только по команде</td>
+      <td>только по команде</td>
+      <td>никогда</td>
+    </tr>
+    <tr>
+      <td><b>Когда использовать</b></td>
+      <td>рискованные дни, ENTITY/CLAUDE.md правки, миграции</td>
+      <td>хорошо очерченный план, прозрачный scope</td>
+      <td>понятная задача, оператор недоступен</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="callout">
+  <b>Совет работает на всех трёх режимах.</b> Режим контролирует <i>когда</i>
+  AI обращается к оператору, а не <i>как тщательно</i> сущности думают.
+  Tier-1 ядро (Orchestrator + Forgemaster + Sentinel) всегда полное.
+</div>
+
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<section class="card" id="файлы">
+<h2>9 · Файлы системы — карта</h2>
+
+<h3>Governance (доктрина — не код)</h3>
+<table>
+  <thead><tr><th>Файл</th><th>Что отвечает</th></tr></thead>
+  <tbody>
+    <tr><td><code>docs/governance/CONSTITUTION.md</code></td><td>законы Совета · Priority Ladder · Immutables · Forbiddens</td></tr>
+    <tr><td><code>docs/governance/ENTITY_SYSTEM.md</code></td><td>досье всех 14 умов · матрица активаций · output shapes</td></tr>
+    <tr><td><code>docs/governance/EXECUTION_PROTOCOL.md</code></td><td>ежедневный цикл T0–T13 · ритуалы · конфликты</td></tr>
+    <tr><td><code>docs/governance/ROADMAP_ENGINE.md</code></td><td>как 12-мес план потребляется и эволюционирует</td></tr>
+    <tr><td><code>docs/governance/decision-graph.md</code></td><td>канон Historian: все ratified + anticipated ADR</td></tr>
+    <tr><td><code>docs/governance/README.md</code></td><td>порядок чтения, контракт adoption</td></tr>
+    <tr><td><code>docs/governance/COUNCIL-GUIDE.html</code></td><td>этот файл — визуальный обзор</td></tr>
+  </tbody>
+</table>
+
+<h3>Платформенная конституция</h3>
+<table>
+  <tbody>
+    <tr><td><code>ENTITY.md</code></td><td>что строим: Rust + Tokio + Postgres + RLS + Leptos + libvips + … · §7 perf targets · §9 forbidden architecture · §12 spine</td></tr>
+    <tr><td><code>CLAUDE.md</code></td><td>runtime-конфиг AI · режимы MANUAL/SEMIAUTO/AVTONOM · первая строка статуса</td></tr>
+  </tbody>
+</table>
+
+<h3>Память Совета</h3>
+<table>
+  <tbody>
+    <tr><td><code>memory/MEMORY.md</code></td><td>индекс</td></tr>
+    <tr><td><code>memory/orchestrator_init.md</code></td><td>граф зависимостей, drift-детекторы armed</td></tr>
+    <tr><td><code>memory/forgemaster_init.md</code></td><td>perf baselines, VAL слоты, allocation budgets</td></tr>
+    <tr><td><code>memory/sentinel_init.md</code></td><td>open failure modes, threat surfaces, observability gaps</td></tr>
+    <tr><td><code>memory/simplifier_init.md</code></td><td>deletion graveyard, anti-pattern watch-list</td></tr>
+    <tr><td><code>memory/historian_init.md</code></td><td>ratified ADR + anticipated, prior-rejection log</td></tr>
+    <tr><td><code>memory/economist_init.md</code></td><td>capacity assumptions, cost curves, engineer-week ledger</td></tr>
+    <tr><td><code>memory/orchestrator_drift_log.md</code></td><td>append-only лог трипов D-1..D-10</td></tr>
+  </tbody>
+</table>
+
+<h3>План и дневные артефакты</h3>
+<table>
+  <tbody>
+    <tr><td><code>docs/session-plans/WP-PLAN-12-MONTH.html</code></td><td>визуальный master plan (240 ячеек)</td></tr>
+    <tr><td><code>docs/session-plans/MASTER-ROADMAP-2026-2027.md</code></td><td>нарративный master plan</td></tr>
+    <tr><td><code>docs/session-plans/MONTH-SKELETON-{03..12}.md</code></td><td>per-month seed для bootstrap</td></tr>
+    <tr><td><code>docs/session-plans/dailies-v2/INDEX.md</code></td><td>truth table 240 дней + статусы</td></tr>
+    <tr><td><code>docs/session-plans/dailies-v2/MNN-YYYY-MM/WN/.../architect.md</code></td><td>стратегический брифинг (для оператора)</td></tr>
+    <tr><td><code>docs/session-plans/dailies-v2/MNN-YYYY-MM/WN/.../senior-dev.md</code></td><td>AVTONOM-paste-able prompt (для AI)</td></tr>
+    <tr><td><code>SESSION_LOG.md</code> (корень)</td><td>последний завершённый день · перезаписывается каждой сессией</td></tr>
+  </tbody>
+</table>
+
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<section class="card" id="faq">
+<h2>10 · Частые вопросы</h2>
+
+<h3>В чём разница между ENTITY.md и CONSTITUTION.md?</h3>
+<p>
+  <code>ENTITY.md</code> связывает <i>код</i> — что строим, какой стек, какие
+  perf targets, что запрещено в архитектуре. <code>CONSTITUTION.md</code>
+  связывает <i>умы</i> — как они принимают решения, разрешают конфликты,
+  обнаруживают дрейф. Иерархия (§0 CONSTITUTION):
+  Operator > ENTITY.md > CONSTITUTION.md > ENTITY_SYSTEM.md > …
+</p>
+
+<h3>Почему 14 сущностей, а не 1 или 100?</h3>
+<p>
+  1 — слишком мало (нет напряжения, AI скатывается в self-confirmation).
+  100 — слишком много (каждая делает 1% и теряет фокус).
+  14 — каждая сущность держит уникальную колонку забот, без перекрытия,
+  но с обязательными handshake'ами (см. ENTITY_SYSTEM.md §15).
+</p>
+
+<h3>Кто пишет план на завтра?</h3>
+<p>
+  Заранее (на старте месяца) — bootstrap session, на основании
+  <code>MONTH-SKELETON-NN.md</code>. Конкретный <code>architect.md</code> +
+  <code>senior-dev.md</code> на день генерируются ИЛИ заранее (как пилотный
+  M3 W1 D1), ИЛИ утром того дня (через RETRO предыдущего месяца).
+  Совет на сессии запуска <i>ратифицирует</i> то, что увидел; если плана нет —
+  первой фазой генерирует.
+</p>
+
+<h3>Что такое Adoption Pass и нужен ли он мне ещё?</h3>
+<p>
+  Это <b>одноразовый ритуал</b>, который прошёл 2026-05-26: первая сессия
+  после ратификации governance файлов добавила Council-секции в пилотный
+  день и инициализировала <code>memory/</code>. Больше не запускается.
+  Будущие сессии — обычный T0–T13 цикл.
+</p>
+
+<h3>Может ли Совет ошибиться?</h3>
+<p>
+  Да. <code>EXECUTION_PROTOCOL.md §10</code> перечисляет 6 режимов отказа
+  самого Совета: quorum failure, deadlock loop, consensus theater,
+  memory amnesia, anti-drift cascade, entity capture. На каждый описан
+  recovery. Если Совет «залип» — оператор имеет суверенитет (CONSTITUTION §12)
+  и перебивает напрямую.
+</p>
+
+<h3>Как менять конституцию?</h3>
+<p>
+  Через формальный Motion: <code>docs/governance/motions/MOT-NNN-&lt;slug&gt;.md</code>
+  → явное OK оператора → harmonization с ENTITY.md (если cross-cutting) →
+  единый коммит с трейлером <code>Constitutional-Amendment: MOT-NNN</code> →
+  roll-forward в impacted daily prompts. Амендменты <b>никогда</b> не
+  применяются ретроактивно к ratified дням.
+</p>
+
+<h3>Что такое MPD (Master-Plan Diff)?</h3>
+<p>
+  Единственный легальный способ изменить <code>WP-PLAN-12-MONTH.html</code>
+  вне планового RETRO. Документ в <code>docs/governance/master-plan-diffs/</code>
+  c исходной ячейкой, предлагаемой ячейкой, обоснованием, мнением Council
+  Tier-4, явным OK оператора. Если в M5 что-то «оказалось не так» — это
+  открывает MPD, а не молча правится план.
+</p>
+
+<h3>Где Year-2 (M13+)?</h3>
+<p>
+  Не существует на данном горизонте. Year-2 кандидаты <i>сеются</i> RETRO
+  месяца M12 (апрель 2027) в <code>MASTER-ROADMAP §year-2-candidates</code>.
+  До этого момента предложения о M13+ — это нарушение Immutable I-13.
+</p>
+
+<h3>Можно ли пропустить Совет на простом дне?</h3>
+<p>
+  Нет. На «простом» дне (например, docs-only) Tier-1 всё равно проходит
+  полностью; Tier-3 пропускается <i>с явной записью</i>
+  <code>Council: ADVERSARY skipped — reason: …</code>. Implicit skip = поломка
+  контракта (CONSTITUTION §F-1 + §2.6).
+</p>
+
+</section>
+
+</main>
+
+<footer>
+  <div>
+    AX•CMS · Совет 14-ти умов · governance <span class="tag">v1.0</span> ·
+    адоптировано <span class="tag">2026-05-26</span>
+  </div>
+  <div style="margin-top:6px;">
+    Конституция платформы: <code>ENTITY.md</code> ·
+    Конституция умов: <code>docs/governance/CONSTITUTION.md</code> ·
+    План: <a href="../session-plans/WP-PLAN-12-MONTH.html">WP-PLAN-12-MONTH</a>
+  </div>
+  <div style="margin-top:6px; color: var(--fg-dim-2);">
+    Совет не пишет код. Совет создаёт систему, которая пишет код, и сохраняет её
+    когерентность на 12 месяцев.
+  </div>
+</footer>
+
+</body>
+</html>
