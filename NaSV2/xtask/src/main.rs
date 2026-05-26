@@ -64,9 +64,9 @@ fn main() -> Result<()> {
     let cli = Cli::parse();
     match cli.command {
         Cmd::ArchitectureCheck => commands::architecture_check::run(),
-        Cmd::MagicCheck => stub("magic-check"),
+        Cmd::MagicCheck => commands::magic_check::run(),
         Cmd::CapabilityCoverage => stub("capability-coverage"),
-        Cmd::CheckPlanningRefs { .. } => stub("check-planning-refs"),
+        Cmd::CheckPlanningRefs { commit } => commands::check_planning_refs::run(&commit),
         Cmd::ExtensionAudit => stub("extension-audit"),
         Cmd::PoolModeCheck { database_url } => commands::pool_mode_check::run(&database_url),
         Cmd::PgoBuild => stub("pgo-build"),

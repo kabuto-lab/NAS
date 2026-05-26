@@ -1,190 +1,209 @@
-# SESSION_LOG — AVTONOM 2026-05-25 (WP-PARITY EXPANSION)
+# SESSION_LOG — AVTONOM 2026-05-26 · First Council-Protocol Day
 
-> Extends the morning's MONTH-BOOTSTRAP (commits b67302e..4d166fc)
-> with a deep WordPress-parity audit + 12-month master plan + Month 2
-> fully detailed (20 daily prompts).
+> **Mode:** AVTONOM (first session under governance v1.0).
+> **Bundled scope:** Adoption Pass (governance bootstrap) + M1 W1 D1 catch-up
+> (`xtask magic-check`) + M1 W1 D2 today (`xtask check-planning-refs`).
+> **Council ratification:** all Tier-1 + Tier-2 entities active; Tier-3 skipped
+> with documented reason (docs-tooling, no public surface); Tier-4 invoked once
+> at Adoption Pass for M3 monthly README (Migrator/Ecosystem/Productor).
+> **Outcome:** 2 commits planned on `main`, **no push**.
+
+---
 
 ## Outcome — one line per phase
 
 | Phase | Outcome |
 |---|---|
-| Gap analysis | green · `GAP-ANALYSIS-WP-PARITY.md` (28 functional areas scored; M1 ships ~6% of WP surface) |
-| 12-month master | green · `MASTER-ROADMAP-2026-2027.md` (5 phases · M1→M12 each with 5 goals · projected cumulative parity arc 6%→100%) |
-| Month skeletons | green · `MONTH-SKELETON-03..12.md` (10 files seeding each month's bootstrap) |
-| Month 2 detail | green · `AUDIT-2026-06-22.md` + `ROADMAP-2026-06.md` + `WEEK-05..08.md` |
-| Month 2 daily prompts | green · `daily/2026-06-22..2026-07-17.md` (20 ultradetailed prompts) |
-| Commits + log | green · 7 commits on `main`; 0 push |
+| T0 Session-start ritual | governance v1.0 files loaded; mode AVTONOM |
+| T1 Read-before-trust | **D-10 drift detected**: W1 D1 magic-check did not land yesterday despite daily prompt's CARRY-OVER claim |
+| T2 Orchestrator | bundle today + catch-up; both ratified; spine mini-edit auth via two daily prompts |
+| T3 Historian | PLAN-G1 referenced; ADR/RFC graph unchanged today |
+| T4 Forgemaster | `LazyLock<Regex>` static initializers; 5 `expect_used` allows justified |
+| T5 Sentinel | failure modes: regex over-match (§F-5 accepted); git-not-in-PATH wrapped error |
+| T6 Simplifier | bundle (1 SESSION_LOG, 1 V cycle) > split (2 each) |
+| T7 Economist | engineer-time ~2 h bundled vs 2× 1.5 h split → net win |
+| T8 Tier-3 | **all skipped** — reason: dev tooling, no public surface, no distributed coord, no hot path |
+| T9 Tier-4 | (Adoption Pass — Migrator/Ecosystem/Productor outlooks written to `dailies-v2/M03-2026-07/README.md`) |
+| T10 Conflict detect | **no conflict** → Judge not invoked |
+| T11 Execute | wrote magic_check.rs (250 LOC + 7 tests) + check_planning_refs.rs (200 LOC + 11 tests) + 2-line spine mini-edit |
+| T12 Session-end ritual | V1 ✓ · V2 ✓ · V3 ✓ · V4 18/18 ✓ · magic-check ok 31 files · check-planning-refs ok HEAD |
+| T13 Anti-drift sweep | D-10 repaired (catch-up landed); D-1/D-3/D-5/D-6/D-7 green; D-2/D-4/D-9 dormant; D-8 monitored |
 
-## Generated artifacts (in addition to morning bootstrap)
+---
 
-| Type | Path | Count | LOC |
-|---|---|---:|---:|
-| Gap analysis | `docs/session-plans/GAP-ANALYSIS-WP-PARITY.md` | 1 | 193 |
-| Master roadmap | `docs/session-plans/MASTER-ROADMAP-2026-2027.md` | 1 | 329 |
-| Month skeletons | `docs/session-plans/MONTH-SKELETON-03..12.md` | 10 | 831 |
-| M2 monthly | `docs/session-plans/{AUDIT-2026-06-22,ROADMAP-2026-06}.md` | 2 | 341 |
-| M2 weekly | `docs/session-plans/WEEK-05..08.md` | 4 | 212 |
-| M2 daily | `docs/session-plans/daily/2026-06-22..07-17.md` | 20 | 5126 |
-| **Total** | | **38** | **~7000** |
+## Plan (detailed status)
 
-## Commits made (local, not pushed)
+### Adoption Pass artifacts (governance bootstrap)
 
-| Phase | SHA | Title |
-|---|---|---|
-| Gap analysis | `b9497be` | gap analysis — current plan vs WordPress |
-| Master | `8eb0b2b` | 12-month master plan 2026-05..2027-04 |
-| Skeletons | `dc88732` | M3..M12 month skeletons |
-| M2 AUDIT+ROADMAP | `2bcf4e4` | Month 2 AUDIT + ROADMAP |
-| M2 WEEKs | `27861cc` | WEEK-05..08 plans for Month 2 |
-| M2 daily | `19fc549` | 20 daily prompts for Month 2 |
-| (this) | — | SESSION_LOG update |
+- `docs/governance/CONSTITUTION.md` · 321 LOC · binding
+- `docs/governance/ENTITY_SYSTEM.md` · 650 LOC · 14 minds dossiers
+- `docs/governance/EXECUTION_PROTOCOL.md` · 409 LOC · T0..T13 loop
+- `docs/governance/ROADMAP_ENGINE.md` · 423 LOC · 3 views + MPD pipeline
+- `docs/governance/README.md` · 157 LOC · porting / read order
+- `docs/governance/COUNCIL-GUIDE.html` · 1018 LOC · Russian visual overview
+- `docs/governance/decision-graph.md` · 5 ratified ADRs + 11 anticipated nodes
+- `memory/MEMORY.md` + 6 entity init dossiers + drift log
+- `dailies-v2/` tree · README + INDEX + M3 + W1 + pilot day with Council sections
+- 2026-07-20 pilot day status: `adopted-pilot`
 
-All commits trailer `AI-Assisted: AX-ARCHITECT (Claude Opus 4.7)`.
-None pushed (operator action).
+### M1 W1 D1 catch-up — `xtask magic-check`
 
-## Gap analysis headlines
+Modules: `xtask/src/commands/magic_check.rs` (NEW · 360 LOC including tests).
 
-- **28 functional areas of WP** mapped; M1 covers ~6%
-- **6 docs/areas at zero**: comments, themes, plugins, admin UI,
-  site-editor, search
-- **5 structural decisions** needed early (block editor frontend,
-  WASM sandbox, theme.json compat, spam strategy, edge cache
-  invalidation) — each scheduled into an ADR slot
-- **5 plan-omission corrections** promoted into MASTER:
-  1. early editor-strategy ADR in M3
-  2. RLS policy SQL in M2 alongside first repo (was implicit)
-  3. revisions+autosaves into M3 (was M5+)
-  4. nonces+CSRF into M2 (was unspecified)
-  5. backup story up to M10 (was M14+)
+Rules:
+- **R1** `tokio::spawn(` outside `crates/runtime/src/supervisor.rs`. File-scope opt-out: `#![allow(clippy::disallowed_methods)]` (multi-line aware via `(?s)#!\[allow\([^)]*…\)\]` regex).
+- **R2** `lazy_static!` (rule armed for future drift; no call sites today).
+- **R3** `macro_rules!` body > 50 lines.
 
-## Master plan summary
+Tests (7): bare-spawn detection, supervisor whitelist, file-scope-allow, doc-comment exemption, lazy_static detection (with constructed-string trick to prevent self-trip), macro oversize, macro under-limit.
 
-| Month | Theme | Cumulative WP-parity |
-|---:|---|---:|
-| M1 (current) | Foundation: gates + domain + first handler | 6% |
-| M2 | Postgres repos + JWT + RLS SQL + Posts CRUD | 14% |
-| M3 | Media pipeline + revisions + editor-strategy ADR | 21% |
-| M4 | Block library expansion (15 variants) + patterns + reusable | 31% |
-| M5 | Taxonomies + admin scaffolding kickoff | 40% |
-| M6 | Comments + moderation + spam scaffolding | 48% |
-| M7 | Admin: post editor + media browser (first demo) | 60% |
-| M8 | Themes API + bundled minimal + template hierarchy | 70% |
-| M9 | Extension API + WASM sandbox + SEO-basics plugin | 79% |
-| M10 | Caching L1+L2 + invalidation fan-out + backup | 86% |
-| M11 | Search (tantivy) + reindex pipeline | 92% |
-| M12 | WP importer + PGO/BOLT + edge + production deploy | 100% |
+Sanity sweep: `cargo run -p xtask -- magic-check` → `ok (31 files scanned)`. Two pre-existing `#![allow(clippy::disallowed_methods)]` honored (in `pool_mode_integration.rs` and the new `magic_check.rs` itself).
 
-12-month risk register: 7 risks logged in MASTER §risk-register
-(top: editor-frontend scope; WASM cold-start perf; theme.json
-compat unbounded; Dragonfly/NATS operational complexity).
+### M1 W1 D2 today — `xtask check-planning-refs`
 
-## Month 2 highlight (detailed)
+Module: `xtask/src/commands/check_planning_refs.rs` (NEW · 215 LOC including tests).
 
-| Goal | Days | Key deliverable |
-|---|---|---|
-| G1 RLS + 5 migrations | W5 (5 days) | 0002..0008 + ADR-010 + VAL-005 RLS proptest 1000 rounds |
-| G2 PgPostRepository + with_tenant | W6 (5 days) | All 5 trait methods, single-RTT GUC contract, integration suite |
-| G3 JwtVerifier + login | W7 (5 days, D1-D4) | HmacJwtVerifier+Issuer, jwt_middleware, replay cache, /auth/login |
-| G4 Posts REST CRUD | W7 D5 + W8 D1-D3 | 5 endpoints all gated + CSRF + matrix test |
-| G5 ADRs + RETRO | W8 (D3-D5) | ADR-009 revisions, RFC-005 CSRF, RFC-006 JWT, RETRO, next-month bootstrap |
+Logic: walk `git log <range> --format=%H%x00%B%x01` (byte-delimited body harvest); match `\b(RFC|ADR|PLAN|VAL)-\w{1,16}\b`; trivial-commit allow-list (typo / chore(deps) / chore(fmt) / style:format / build:bump / docs:comment).
 
-Exit M2 cumulative WP-parity ~14%.
+Tests (11): each ref kind detected; trivial categories accepted; non-trivial random feat rejected; short-SHA truncation.
+
+Sanity HEAD-only: `cargo run -p xtask -- check-planning-refs --commit HEAD~1..HEAD` → ok (1 commit). Sanity full history: 20/51 historical violations — **expected**, **not yet wired to CI** per daily prompt; backfill scheduled M1 W4 D3 (G5.P2).
+
+### Spine mini-edits (authorized)
+
+| File | Line | Old | New | Authorization |
+|---|---|---|---|---|
+| `xtask/src/main.rs` | 67 | `Cmd::MagicCheck => stub("magic-check"),` | `Cmd::MagicCheck => commands::magic_check::run(),` | `docs/session-plans/daily/2026-05-25.md` |
+| `xtask/src/main.rs` | 69 | `Cmd::CheckPlanningRefs { .. } => stub("check-planning-refs"),` | `Cmd::CheckPlanningRefs { commit } => commands::check_planning_refs::run(&commit),` | `docs/session-plans/daily/2026-05-26.md` |
+
+Both edits are pre-authorized one-line replacements; no further spine touches.
+
+### Council sections applied to pilot day
+
+- `dailies-v2/M03-2026-07/W1-2026-07-20/2026-07-20-mon/architect.md` ← `## Council Review` (Orchestrator + Historian Trace)
+- `dailies-v2/M03-2026-07/W1-2026-07-20/2026-07-20-mon/senior-dev.md` ← `## Council Engineering Pass` (Forgemaster + Sentinel + Simplifier + Economist + Tier-3 skips)
+- `dailies-v2/M03-2026-07/README.md` ← Tier-4 Migrator / Ecosystem / Productor outlooks
+
+---
 
 ## AI-Defaults applied
 
-| Decision | Choice | Reason |
+| Decision | Choice | Reason / record |
 |---|---|---|
-| WP-parity scope | "WP core only" (excludes commerce/forms/advanced-SEO) | those become Year 2 plugins — keeps Y1 plan tight |
-| Master plan horizon | 12 months | matches reasonable single-engineer Y1 productivity |
-| Daily prompts depth | M1 + M2 in full ultradetail; M3-M12 month-skeleton only | each month's bootstrap regenerates that month's dailies — pre-writing M3+ would diverge from reality by M6 |
-| ADR slots in MASTER | scheduled at the month the decision binds | early ADRs prevent late re-architecture |
-| Block editor frontend | decision deferred to M3 ADR-010 | huge UX surface area; no advantage to choosing now |
-| WASM sandbox | decision deferred to M9 ADR-014 | first-party extensions can ship compile-time linked; WASM is a customer-installable-plugin requirement |
-| ax_csrf cookie HttpOnly=false | yes (double-submit needs JS read) | documented as anti-pattern-that-isn't; SameSite=Strict adds defence |
-| jti replay TTL = token TTL | yes | cache size bounded by capacity; expiry tied to claim |
+| Bundle catch-up + today | Yes (one session, two commits) | Constitution §3 Priority Ladder: maintainability > simplicity; chronology preserved |
+| Drift severity classification | **info** for D-10 (catch-up repair feasible same-day) | D-10 typically `warn` if unrepaired; we repaired same session |
+| Static-regex strategy | `LazyLock<Regex>` with per-static `#[allow(clippy::expect_used)]` | Regex literals are compile-time constants; panic-on-init is the correct failure mode for hardcoded patterns |
+| Test-fixture trick for R2 self-trip | `["lazy_", "static!"].concat()` at runtime | Avoids polluting design with a second file-scope-allow token |
+| File-scope-allow detector | Multi-line regex `(?s)#!\[allow\([^)]*lint[^)]*\)\]` | Original substring check failed when `#![allow(...)]` was split across lines (real case in `pool_mode_integration.rs`) |
+| check-planning-refs CI wiring | **NOT YET** | 20 historical violations would block all PRs; per daily prompt, backfill scheduled M1 W4 D3 |
+| `--commit HEAD` semantics | Documented as "from HEAD all the way back" (full git log default) | Users should pass `HEAD~1..HEAD` for single-commit scan; documented as common-pitfall |
+| Commit split | 2 commits (governance bootstrap + xtask code) | Reviewability rung > single-commit-rule; governance is structural and code work is mechanical — different review attention |
+
+---
 
 ## Skipped / Blocked
 
 | Item | Reason | Suggested follow-up |
 |---|---|---|
-| M3-M12 daily prompts pre-written | by design — each month's bootstrap regenerates dailies | trust the system; if a future month wants pre-rendering, operator can run that month's bootstrap early |
-| `tower-governor` workspace dep verification | not currently confirmed in workspace `Cargo.toml` | RFC-006 notes — may need adding in M3 if not present |
-| Operator: push commits | AVTONOM never pushes | operator reviews + pushes |
+| `git push` | AVTONOM never pushes (ENTITY §22.4 universal lock) | Operator reviews 2 commits + pushes if approved |
+| Wiring check-planning-refs to CI | 20 historical violations would block | Backfill commits with corrective `Refs:` trailer at M1 W4 D3 (G5.P2) |
+| Adversary / Chaos / TestPilot Council passes | Activation matrix §14 — dev-tooling day, no triggers fired | Re-engage when first auth/public-endpoint/queue day lands (M2 W3+) |
+| Full-history check-planning-refs sanity in CI | See above | Same date |
+| `cargo deny check` | Not in today's scope; no new deps added (xtask had regex+walkdir already) | Routine sweep at next monthly RETRO |
+
+---
+
+## Drift log entries this session
+
+| Time | D | Severity | Fact | Repair |
+|---|---|---|---|---|
+| 11:00 | D-10 | info | 2026-05-26.md CARRY-OVER claimed W1 D1 magic-check landed; reality showed `xtask/src/commands/magic_check.rs` absent and `main.rs:67` still routing to `stub`. | Bundled W1 D1 catch-up with today's work; same-session repair. |
+| 11:20 | D-1 | info | Scope slightly elevated (2 commands vs 1) but within prior-day's W1 D1 budget reclaim. | No further action. |
+| 11:25 | D-3, D-5, D-6, D-7 | green | All `xtask` gates clean. | — |
+| 11:30 | D-2, D-4, D-9 | dormant | Weekly cadence detectors; no action this session. | Next Friday EOD. |
+
+Persisted to `memory/orchestrator_drift_log.md`.
+
+---
+
+## Commits made (local, **not pushed**)
+
+| # | Title | Files |
+|---|---|---|
+| **A** | `docs(ax/governance,Council-v1.0): adopt 14-mind Council civilization` | `docs/governance/*` (7 files) + `memory/*` (8 files) + `docs/session-plans/dailies-v2/*` (entire v2 tree including pilot day) |
+| **B** | `feat(ax/g1-d1+d2,PLAN-G1): xtask magic-check + check-planning-refs` | `xtask/src/commands/magic_check.rs` (new) + `xtask/src/commands/check_planning_refs.rs` (new) + `xtask/src/commands/mod.rs` (+2 module decls) + `xtask/src/main.rs` (2-line spine mini-edit) + `SESSION_LOG.md` (this file) |
+
+Each commit trails:
+```
+AI-Assisted: AX-ARCHITECT (Claude Opus 4.7)
+```
+
+Commit A additionally trails:
+```
+Constitutional-Adoption: v1.0
+```
+
+---
 
 ## Recommendations for human review
 
-1. **Skim `GAP-ANALYSIS-WP-PARITY.md`** before reading anything else
-   — it sets the honest expectation that M1 is foundation, not a
-   shippable WP replacement.
-2. **Read `MASTER-ROADMAP-2026-2027.md` §risk-register** — adjust
-   priorities if any of the 7 risks have ground-truth that we don't
-   know.
-3. **Read `MONTH-SKELETON-07.md`** — it's the demo-milestone month
-   (first end-to-end editor flow); operator should preview the
-   theme/visual choices in advance.
-4. **Decide GAP-S2 (extension sandbox model) earlier** if Year-2
-   marketplace is on the roadmap — gating ADR-014 today rather than
-   M9 unblocks parallel plugin work.
-5. **The 5 structural ADRs in MASTER** should be reviewed by anyone
-   touching architecture before commits start landing on the listed
-   month.
-6. **`docs/session-plans/HOW-TO-RUN.md` §10 (added M1 W1 D3)** —
-   if not yet present, add it; describes the gate matrix that M2 will
-   change (capability-coverage becomes real W4 D2; check-planning-refs
-   wires into CI W5 D1).
-7. **MASTER-ROADMAP doesn't include Year 2** — by design (commerce,
-   forms, advanced SEO, real-time collab, plugin marketplace are
-   in §year-2-candidates). Year 2 master plan is for the M12 RETRO
-   to seed.
+1. **Read commit A first** — the governance substrate is foundational and not reversible without ceremony.
+2. **The Simplifier counterproposal in the pilot day is binding for Tue 2026-07-21.** Override before commit A if you disagree (delete the counterproposal paragraph in `dailies-v2/M03-2026-07/W1-2026-07-20/2026-07-20-mon/senior-dev.md §Simplifier Counterproposal`).
+3. **In commit B**, the spine mini-edits on `xtask/src/main.rs:67+:69` are pre-authorized by two daily prompts. Verify the line-numbering matches the post-edit file.
+4. **check-planning-refs is NOT wired to CI yet.** This is by design (historical violations would block all merges). Backfill day scheduled M1 W4 D3.
+5. **D-10 drift log entry**: the catch-up bundling worked, but the root cause is that yesterday's AVTONOM session worked on WP-parity docs instead of the planned W1 D1 magic-check. If this pattern recurs, the Orchestrator should harden the session-open ritual to refuse drift-from-plan.
+6. **Memory dossiers** at `memory/*_init.md` are entity opening positions. Corrections are cheap now, expensive later.
 
-## Next action for operator
-
-For Month 1 (currently running):
-> Continue with `docs/session-plans/daily/2026-05-25.md` already
-> generated this morning; sessions through `2026-06-19.md` are
-> ready.
-
-For Month 2:
-> When `RETRO-2026-06.md` lands on 2026-06-19 W4 D5, the
-> next-month bootstrap will reference `MONTH-SKELETON-03.md` as its
-> seed. Operator pastes the bootstrap as opening message on
-> 2026-06-22 morning. NOTE: today's session has ALREADY pre-generated
-> M2's full daily set (`daily/2026-06-22..07-17.md`) — operator may
-> either:
->   - skip the M2 bootstrap (use pre-generated dailies directly), or
->   - run the M2 bootstrap anyway (it will reconcile reality vs
->     forecast and may shift some scope).
-> Default recommendation: skip the bootstrap; the pre-generated
-> dailies are an honest forecast and the AVTONOM running them will
-> still adapt locally.
-
-For Months 3-12:
-> Trust the monthly-bootstrap cycle. Each month's W4 D5 RETRO
-> generates the next month's bootstrap; bootstrap reads the matching
-> MONTH-SKELETON + RETRO §7 as seed; bootstrap day produces
-> AUDIT + ROADMAP + WEEK + 20 daily prompts.
+---
 
 ## Working tree at end of session
 
 ```
-git status --short
- M ../ENTITY.md                                       # parent — unrelated
- M ../ops/caddy/Caddyfile.snippets/cms-ax-pilots.caddy # parent — unrelated
- M "../\320\242\320\227.html"                          # parent — unrelated
-?? <pre-existing untracked spine + stubs — unchanged from morning>
-?? ../STACK_COMPARISON.html                           # parent — unrelated
-?? ../prototype-dashboard/                            # parent — unrelated
+git status --short  (post-execute, pre-commit)
+ M xtask/src/main.rs                                   ← commit B
+ M xtask/src/commands/mod.rs                           ← commit B
+ M docs/session-plans/dailies-v2/INDEX.md              ← commit A
+ M docs/session-plans/dailies-v2/M03-2026-07/README.md ← commit A
+ M docs/session-plans/dailies-v2/M03-2026-07/W1-2026-07-20/2026-07-20-mon/architect.md   ← commit A
+ M docs/session-plans/dailies-v2/M03-2026-07/W1-2026-07-20/2026-07-20-mon/senior-dev.md  ← commit A
+?? SESSION_LOG.md                                      ← commit B
+?? xtask/src/commands/magic_check.rs                   ← commit B
+?? xtask/src/commands/check_planning_refs.rs           ← commit B
+?? docs/governance/                                    ← commit A
+?? docs/session-plans/dailies-v2/README.md             ← commit A
+?? docs/session-plans/dailies-v2/M03-2026-07/W1-2026-07-20/README.md  ← commit A
+?? memory/                                             ← commit A
 ```
 
-No production code changes; this entire session is docs-only.
+(Plus pre-existing untracked files from prior sessions, not touched and not staged.)
+
+---
 
 ## Time budget
 
-- Wall time: substantial (≈ 4-5 h cumulative across morning bootstrap
-  + this expansion)
-- Output: ~7000 LOC across 38 new docs
-- 7 new commits on top of morning's 6 (total 13 commits today in
-  the WP-parity track)
-- Zero `git push`
-- Zero spine-file edits
-- Zero new workspace `Cargo.toml` deps
+- Wall: single session.
+- Council passes: 7 (T2–T7 + T9 Tier-4 from Adoption Pass).
+- Tier-3 skips: 3 with documented reasons.
+- V1..V4 iterations: 4 cycles (initial → fmt → +allows → +Debug+test-allows+regex-fix → +runtime-string-trick).
+- LOC produced: ~575 new (magic_check 360 + check_planning_refs 215) + governance edits ~600 LOC + this log ~250.
+- Files written: 2 new, 4 edited (this session); commit A files predate this turn but reach `main` here.
+
+---
+
+## CARRY-OVER for next session (M1 W1 D3 · 2026-05-27)
+
+Per `docs/session-plans/daily/2026-05-27.md` (read at next session-start):
+
+- **G1.P3 — Run all four xtask hygiene gates** end-to-end (`architecture-check` + `magic-check` + `capability-coverage` (still stub) + `check-planning-refs`) and update `docs/session-plans/HOW-TO-RUN.md §10` CI gate matrix.
+- **Entering state assumptions** to verify at T1:
+  - `xtask magic-check` exits 0 on clean tree → **VERIFIED** today.
+  - `xtask check-planning-refs --commit HEAD~1..HEAD` exits 0 → **VERIFIED** today.
+  - `xtask architecture-check` (real impl from earlier) exits 0 → verify next session.
+  - `capability-coverage` still routes to `stub("capability-coverage")` → planned real impl M1 W4 D2 per `WP-PLAN-12-MONTH` cell.
+- **Open binding**: D-10 drift root-cause analysis. If yesterday's AVTONOM drifted off-plan, harden session-open to refuse drift (Orchestrator memory update needed in next session).
+- **Commit policy reminder**: AVTONOM never pushes. Operator decides on every push.
+
+---
+
+**End of Adoption Pass + first Council-protocol AVTONOM session.**
+The 14 minds executed real work for the first time. Two commits ready; no push.
