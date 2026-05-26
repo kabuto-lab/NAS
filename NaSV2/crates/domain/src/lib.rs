@@ -7,13 +7,15 @@
 
 #![forbid(unsafe_code)]
 
+pub mod block;
+pub mod post;
 pub mod site;
-// pub mod post;          // W2 D2
 // pub mod user;          // W2 D3
 // pub mod role;          // W2 D3
 // pub mod capability;    // W2 D3
-// pub mod block;         // W2 D2 (placeholder) + W2 D4 (real)
 // pub mod taxonomy;      // deferred to month 2
 // pub mod media;         // deferred
 
+pub use block::Block;
+pub use post::{CustomPostType, Post, PostSlug, PostStatus};
 pub use site::{Site, SiteSlug};
