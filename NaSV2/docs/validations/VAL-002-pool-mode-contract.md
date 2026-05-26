@@ -3,7 +3,7 @@
 - **Status:** Active
 - **Date:** 2026-05-25
 - **Owner:** AX•ARCHITECT
-- **References:** ENTITY §3.4.1, ADR-003, P2 of AVTONOM 2026-05-25
+- **References:** ENTITY §3.4.1; [ADR-003](../adr/ADR-003-pool-isolation.md); P2 of AVTONOM 2026-05-25
 
 ## Success criteria (measurable)
 

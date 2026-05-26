@@ -3,7 +3,7 @@
 - **Date:** 2026-05-25
 - **Status:** verified · 3 unit tests passing
 - **Scope:** `crates/runtime/src/supervisor.rs` + wiring in `apps/server/src/main.rs`
-- **References:** ENTITY §4.8, §29 · RFC-003 (pending) · PLAN (n/a — single crate)
+- **References:** ENTITY §4.8, §29; [RFC-003](../rfc/RFC-003-task-supervisor.md) (ratified 2026-06-17, backfilled); PLAN (n/a — single crate)
 - **Closes:** P1 of AVTONOM 2026-05-25 session plan
 
 ## Verification matrix

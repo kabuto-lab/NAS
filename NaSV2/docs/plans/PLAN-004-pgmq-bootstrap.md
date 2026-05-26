@@ -4,7 +4,7 @@
 - **Status:** implemented (unit tests green; integration test gated `#[ignore]`)
 - **Scope:** application port `Queue`, infrastructure adapter `PgmqQueue`,
   migration `0001_pgmq_bootstrap.sql`
-- **References:** ENTITY §3.4.2 (pool isolation), §3.8 (queue tiers)
+- **References:** ENTITY §3.4.2 (pool isolation), §3.8 (queue tiers); [RFC-004](../rfc/RFC-004-pgmq-queue.md) (ratified 2026-06-17, backfilled); [ADR-005](../adr/ADR-005-queue-split-pgmq-nats.md)
 - **Closes:** P2 of AVTONOM 2026-05-25 session plan
 
 ## Files touched
