@@ -1,0 +1,58 @@
+[package]
+name = "nas2-presentation"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+nas2-common = { workspace = true }
+nas2-domain = { workspace = true }
+nas2-application = { workspace = true }
+nas2-infrastructure = { workspace = true }   # для DI factory (refactor через generic constructor — Phase B)
+nas2-tenant = { workspace = true }
+nas2-theme-api = { workspace = true }
+nas2-extension-api = { workspace = true }
+axum = { workspace = true }
+axum-server = { workspace = true }
+tower = { workspace = true }
+tower-http = { workspace = true }
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+tracing = { workspace = true }
+ulid = { workspace = true }
+http = { workspace = true }
+base64 = { workspace = true }
+moka = { workspace = true }
+async-trait = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }
+sqlx = { workspace = true }
+ammonia = { workspace = true }
+rinja = { workspace = true }   # askama replaced — ENTITY §3.6
+utoipa = { workspace = true }
+utoipa-axum = { workspace = true }
+jsonwebtoken = { workspace = true }
+tower-sessions = { workspace = true }
+
+[features]
+default = ["leptos-ssr"]
+leptos-ssr = ["dep:leptos", "dep:leptos_axum"]
+
+[dependencies.leptos]
+workspace = true
+optional = true
+
+[dependencies.leptos_axum]
+workspace = true
+optional = true
+
+# dev-only: tower::ServiceExt::oneshot + mockall::mock! for integration tests.
+[dev-dependencies]
+tower = { workspace = true }
+mockall = { workspace = true }
