@@ -56,6 +56,49 @@ pub trait PostRepository: Send + Sync {
     async fn update(&self, post: &Post) -> Result<(), AppError>;
 }
 
+// Blanket forwarder: `Arc<T: PostRepository + ?Sized>` IS a
+// `PostRepository`. Enables `GetPublishedPageBySlug::new(Arc<dyn ...>)`
+// at the handler boundary while keeping the use case generic.
+#[async_trait]
+impl<T: PostRepository + ?Sized> PostRepository for std::sync::Arc<T> {
+    async fn find_by_slug(
+        &self,
+        tenant: TenantId,
+        site: SiteId,
+        slug: &PostSlug,
+    ) -> Result<Option<Post>, AppError> {
+        (**self).find_by_slug(tenant, site, slug).await
+    }
+
+    async fn find_by_id(
+        &self,
+        tenant: TenantId,
+        id: PostId,
+    ) -> Result<Option<Post>, AppError> {
+        (**self).find_by_id(tenant, id).await
+    }
+
+    async fn list_published(
+        &self,
+        tenant: TenantId,
+        site: SiteId,
+        page: u32,
+        per_page: u32,
+    ) -> Result<Page<Post>, AppError> {
+        (**self)
+            .list_published(tenant, site, page, per_page)
+            .await
+    }
+
+    async fn insert(&self, post: &Post) -> Result<(), AppError> {
+        (**self).insert(post).await
+    }
+
+    async fn update(&self, post: &Post) -> Result<(), AppError> {
+        (**self).update(post).await
+    }
+}
+
 #[cfg(test)]
 #[allow(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
 mod tests {

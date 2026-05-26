@@ -56,3 +56,4 @@ optional = true
 [dev-dependencies]
 tower = { workspace = true }
 mockall = { workspace = true }
+async-trait = { workspace = true }
