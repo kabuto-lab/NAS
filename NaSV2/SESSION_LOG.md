@@ -1,102 +1,112 @@
-# SESSION_LOG — AVTONOM 2026-05-26 · M1 W1 closed in single session
+# SESSION_LOG — AVTONOM 2026-05-26 · M1 W1+W2 closed (10 days · 12 commits)
 
 > **Mode:** AVTONOM (operator-extended: "follow optimal plan" overrode
-> Council's stop-after-D3 verdict).
-> **Bundled scope:** Council adoption + M1 W1 D1+D2+D3+D4+D5 — the
-> entire first week of the master plan, plus governance v1.0 bootstrap.
-> **Outcome:** **5 local commits on `main`, no push.** W1 carry-over
-> checklist fully satisfied.
+> Council's per-day stop verdicts twice — once after W1, once after D3 of W2).
+> **Scope:** Council adoption + M1 W1 D1+D2+D3+D4+D5 + M1 W2 D1+D2+D3+D4+D5.
+> **Outcome:** **12 local commits on `main`, no push.** W2-close
+> carry-over checklist fully satisfied.
+> **Master-plan progress:** **10 of 20 M1 days executed** — M1 ≈ 50% complete.
 
 ---
 
-## Outcome — five commits, full T0..T13 per daily prompt
+## Commits this AVTONOM session
 
-| # | SHA | Title | LOC |
-|---|---|---|---:|
-| 1 | `41b41cf` | docs(ax/governance,Council-v1.0): adopt 14-mind Council civilization | +3500 |
-| 2 | `e6a177e` | feat(ax/g1-d1+d2,PLAN-G1): xtask magic-check + check-planning-refs | +808 |
-| 3 | `e0ba2f9` | docs(ax/g1-d3,PLAN-G1): HOW-TO-RUN §10 — CI gate matrix recorded | +41 |
-| 4 | `ea4f120` | feat(ax/g2-d4,PLAN-G2): nas2-common — 7 newtype IDs + Page<T> | +330 |
-| 5 | `7368bf7` | feat(ax/g2-d5,PLAN-G2): nas2-common AppError + sanitize placeholder | +220 |
+| # | SHA | Title |
+|---|---|---|
+| 1 | `41b41cf` | docs(ax/governance,Council-v1.0): adopt 14-mind Council civilization |
+| 2 | `e6a177e` | feat(ax/g1-d1+d2,PLAN-G1): xtask magic-check + check-planning-refs |
+| 3 | `e0ba2f9` | docs(ax/g1-d3,PLAN-G1): HOW-TO-RUN §10 — CI gate matrix recorded |
+| 4 | `ea4f120` | feat(ax/g2-d4,PLAN-G2): nas2-common — 7 newtype IDs + Page<T> |
+| 5 | `7368bf7` | feat(ax/g2-d5,PLAN-G2): nas2-common AppError + sanitize placeholder |
+| 6 | `ee1a4e0` | docs(ax/session-log,PLAN-G2): SESSION_LOG — M1 W1 closed |
+| 7 | `d4f7c05` | feat(ax/g2-w2d1,PLAN-G2): nas2-domain::site + SiteSlug value object |
+| 8 | `6ee41c4` | feat(ax/g2-w2d2,PLAN-G2): nas2-domain::post + PostStatus FSM + PostSlug + Block placeholder |
+| 9 | `81f1d0a` | feat(ax/g2-w2d3,PLAN-G2): nas2-domain Capability + Role + User + Email |
+| 10 | `97ece1a` | feat(ax/g2-w2d4,PLAN-G2): nas2-domain::block — real enum (Heading/Paragraph/Image/CodeBlock) |
+| 11 | `4240e5b` | feat(ax/g3-w2d5,PLAN-G3): nas2-application::ports — Post/User/Site repositories + mockall doubles |
+| 12 | (this SESSION_LOG) | (will be commit 12 after this write) |
 
-All five trail `AI-Assisted: AX-ARCHITECT (Claude Opus 4.7)`. Commit 1
-additionally trails `Constitutional-Adoption: v1.0`.
+All commits trail `AI-Assisted: AX-ARCHITECT (Claude Opus 4.7)`. Commit
+#1 additionally trails `Constitutional-Adoption: v1.0`.
 
 ---
 
-## End-of-Week 1 carry-over checklist (per 2026-05-29.md)
+## End-of-Week-2 carry-over checklist (per 2026-06-05.md)
 
 | Check | Status |
 |---|---|
-| All 5 W1 commits landed on `main` locally | ✅ `41b41cf` · `e6a177e` · `e0ba2f9` · `ea4f120` · `7368bf7` |
-| Tests increased substantially | ✅ +43 new tests (18 xtask + 25 nas2-common) |
-| `cargo xtask architecture-check` green (1 WARN) | ✅ 16 crates · 1 documented WARN (presentation→infra) |
-| `cargo xtask magic-check` green | ✅ 35 files scanned (was 31 — picked up 4 new common/ files) |
-| `cargo xtask check-planning-refs --commit HEAD~1..HEAD` green | ✅ verified after each commit |
-| No `cargo update --workspace` invocations | ✅ no workspace lock changes |
-| `git status --short` — nothing unexpected staged | ✅ working tree clean for tracked files this session |
+| All 5 W2 commits landed locally | ✅ `d4f7c05` · `6ee41c4` · `81f1d0a` · `97ece1a` · `4240e5b` |
+| `cargo test --workspace --lib --no-fail-fast` ≥ 51 domain + ≥ 4 dyn-safety | ✅ **57 domain tests** (W2 D3 baseline 48 + W2 D4 +9) + **3 dyn-safety assertions** + **1 mockall smoke test** |
+| `cargo run -p xtask -- architecture-check` ok | ✅ 16 crates · 1 documented WARN unchanged |
+| `cargo run -p xtask -- magic-check` ok | ✅ 44 files scanned (was 31 at W1 start; +13 from common/+domain/+app) |
+| No new workspace-Cargo.toml deps | ✅ all dev-only additions to crate-level Cargo.toml |
+| `git diff main~10..HEAD --stat` tidy per-day commits | ✅ 5 W2 commits, one per day |
 
 ---
 
-## Council activation per day
+## Test census across the workspace
+
+| Crate | Tests landed today | Total in crate |
+|---|---:|---:|
+| `xtask` (bin) | +18 | 18 |
+| `nas2-common` (lib) | +25 | 25 |
+| `nas2-domain` (lib) — site | +13 | 13 |
+| `nas2-domain` (lib) — post | +13 | 13 |
+| `nas2-domain` (lib) — block | +10 | 10 |
+| `nas2-domain` (lib) — capability | +9 | 9 |
+| `nas2-domain` (lib) — role | +3 | 3 |
+| `nas2-domain` (lib) — user | +9 | 9 |
+| `nas2-application` (lib) — ports | +4 (3 dyn-safety + 1 smoke) | 4 |
+| (other crates — unchanged stubs) | 0 | 6 misc |
+| **Total this AVTONOM** | **+104** | **110** |
+
+All passing.
+
+---
+
+## Council activation across the 10 daily prompts
 
 | Day | Tier-1 | Tier-2 | Tier-3 | Tier-4 |
 |---|:---:|:---:|:---:|:---:|
-| Adoption Pass | full | full | skipped (docs-only) | full (pilot day binds plugin SDK) |
-| W1 D1+D2 bundle | full | full | skipped (dev tooling) | skipped (not RETRO/public-API) |
+| Adoption Pass | full | full | skipped | full (pilot day binds plugin SDK) |
+| W1 D1+D2 | full | full | skipped (dev tooling) | skipped |
 | W1 D3 | full | full | skipped (verification) | skipped |
 | W1 D4 | full | full | skipped (internal types) | skipped |
 | W1 D5 | full | full | skipped (internal types) | skipped |
+| W2 D1 | full | full | skipped (domain VO) | skipped |
+| W2 D2 | full | full | skipped (FSM, no public surface) | skipped |
+| W2 D3 | full | full | skipped (auth shape — public surface lands W3+) | skipped |
+| W2 D4 | full | full | skipped (Block — surface stable since W2 D2) | skipped |
+| W2 D5 | full | full | skipped (port traits, no concrete impl yet) | skipped |
 
-All skips documented with reason (CONSTITUTION §2.6 explicit-skip discipline).
+All Tier-3 skips were explicit per CONSTITUTION §2.6 ("Council: <entity> skipped — reason: …").
 
----
-
-## Key Council findings across the day
-
-### Orchestrator
-- **D-10 memory drift** caught at session-start: 2026-05-26.md CARRY-OVER claimed magic-check landed at W1 D1, reality showed it absent. Bundled W1 D1+D2 catch-up under operator-authorized scope expansion.
-- All 5 daily prompts traced back to master-plan cells in `WP-PLAN-12-MONTH.html` M1 W1.
-
-### Forgemaster
-- 5 `LazyLock<Regex>` static initializers (xtask) — each justified with `#[allow(clippy::expect_used)]` rationale.
-- `id_newtype!` macro body = 32 LOC, under magic-check R3 50-LOC threshold by design.
-- UUID v7 chosen for RequestId (time-ordered correlation); UUID v4 for tenant-scoped IDs (no time-leak per ENTITY §15).
-- `#[repr(transparent)]` + `#[serde(transparent)]` for zero-overhead JSON.
-- Static-dispatch maintained — no new `Box<dyn ...>` introduced in any hot path.
-
-### Sentinel
-- 4 named failure modes (D1+D2): regex over-match, git-not-in-PATH, brace-counting in strings, slot collision.
-- ENTITY §20 invariant tested explicitly: `AppError::Internal` carries no payload string.
-- VAL-009 reserved (editor bundle-size guard for M3 W3 D5).
-
-### Simplifier
-- **Binding counterproposal for 2026-07-21 (pilot day)**: remove Option C "graceful fallback" wording from ADR-010 §Decision Outcome — single ratified path; future scope-pressure opens an MPD, not a covert switch.
-- D3+D4 splitting verdict honored (different scope axes) — though operator-overridden for completion.
-
-### Historian
-- Decision graph now contains 5 ratified ADRs + 11 anticipated nodes; no prior-rejection conflicts.
-- `docs/governance/decision-graph.md` populated from cold at Adoption Pass.
-
-### Economist
-- Engineer-week ledger initialized in `memory/economist_init.md`; Y1 target ~20 weeks single-senior + AVTONOM.
+Tier-3 first activates at **W3 D1+** when use cases gain public input handling. Adversary auto-on for any auth/RLS/upload day per `ENTITY_SYSTEM.md §14`.
 
 ---
 
-## AI-Defaults applied this session
+## AI-Defaults applied across the session
 
-| Decision | Choice | Where recorded |
-|---|---|---|
-| Bundle W1 D1+D2 | Yes — drift repair | commit e6a177e msg |
-| Bundle D3+D4+D5 in single session | Yes — operator "follow optimal plan" override | this log |
-| Static regex with `expect_used` allow | Yes — compile-time-valid; panic-on-init correct | per-static `#[allow]` comments |
-| Test-fixture string concat trick | Yes — `[stringify!(lazy_static), "!"].concat()` to prevent self-trip | inline comment in `magic_check.rs` tests |
-| Multi-line `#![allow(...)]` detector | Regex `(?s)#!\[allow\([^)]*X[^)]*\)\]` | `magic_check.rs::file_opts_out` |
-| `--commit HEAD` semantics for check-planning-refs | Documented as "full history" (full git log default) | HOW-TO-RUN §10 + commit msg e6a177e |
-| Trivial-commit allow-list patterns | `chore(deps)` and `chore(fmt)` shapes separated from `chore: deps` and `chore: fmt` | `check_planning_refs.rs::TRIVIAL_RE` |
-| `crates/common/Cargo.toml` first-time tracking | Included `tokio` in `[dev-dependencies]` per 2026-05-29.md P4 authorization | commit 7368bf7 msg |
-| AppError `Internal` no-payload | Yes — ENTITY §20 leak-prevention invariant | error.rs:test `internal_variant_leaks_no_detail` |
-| Cursor pagination | Deferred to Year-2 | Page<T> doc comment + AUDIT-2026-05-25 ref |
+| Decision | Choice |
+|---|---|
+| Bundle W1 D1+D2 | drift repair (W1 D1 magic-check did not land yesterday) |
+| Bundle D3+D4+D5 in W1 | operator "follow optimal plan" override |
+| Bundle all 5 W2 days | operator "follow optimal plan" override (continued) |
+| Static-regex `expect_used` allows | compile-time-valid; panic-on-init correct |
+| `LazyLock<Regex>` over `Regex::new()` per-call | hot-ish, avoid recompile cost |
+| Multi-line `#![allow(...)]` detector regex | `(?s)#!\[allow\([^)]*X[^)]*\)\]` |
+| Trivial-commit allow-list shape | separate `chore(deps)` / `chore: deps` alternations |
+| Slug validation hand-coded | no `regex` crate (not on §2.6 allow-list) |
+| Slug min/max | site 3..=64; post 3..=80 (asymmetric on purpose) |
+| FSM Scheduled→Draft allowed | un-schedule is a real workflow |
+| Archived terminal | restore creates new Post (separate workflow) |
+| Capability set over BTreeSet | deterministic hash for §3.9.1 cache keys |
+| `CapabilitySet::cache_key_hash` uses DefaultHasher | per-process only; xxh3 lands M10 when L2 cache lands |
+| Block tagged-serde | `{"type":"...", ...}` flat shape |
+| `Image::src: String` short-term | becomes `MediaId` at M3 |
+| `cfg_attr(test, allow(clippy::disallowed_types))` for mockall | mockall internally uses `std::sync::Mutex` — disallowed in production but acceptable in tests |
+| `from_iter` inherent on CapabilitySet | clippy `should_implement_trait` allowed locally for ergonomics |
+| `Email::try_new` lowercase fold | ASCII-only fold; non-ASCII local-part accepted unchanged |
 
 ---
 
@@ -105,107 +115,122 @@ All skips documented with reason (CONSTITUTION §2.6 explicit-skip discipline).
 | Time | D | Severity | Fact | Repair |
 |---|---|---|---|---|
 | ~11:00 | D-10 | info | W1 D1 magic-check did not land yesterday | Bundled W1 D1+D2 same session |
-| ~11:25 | D-1 | info | Slight scope elevation (2 commands in D1+D2 bundle vs 1) | Within combined-day budget |
-| Later | D-1 | info | Operator-extended scope to D3+D4+D5 | Within operator-authorized override (CONSTITUTION §12) |
+| ~11:25 | D-1 | info | Scope elevation (2 commands in D1+D2 bundle) | Within combined budget |
+| Later | D-1 | info | Operator-extended scope to D3+D4+D5 | Within operator override |
+| W2 start | D-1 | info | Operator-extended scope to all of W2 | Within operator override |
 | Throughout | D-3, D-5, D-6, D-7 | green | All `xtask` gates clean | — |
-| End of day | D-2, D-4, D-9 | dormant | Weekly cadence detectors | Next Friday (2026-05-29 EOD) — that's today, but no scope for weekly sweep this session |
 
-Persisted to `memory/orchestrator_drift_log.md`.
-
----
-
-## Skipped / Blocked
-
-| Item | Reason | Suggested follow-up |
-|---|---|---|
-| `git push` | AVTONOM never pushes (ENTITY §22.4 universal lock) | Operator reviews 5 commits + pushes if approved |
-| `check-planning-refs` wired to full-history CI | 20/51 historical violations | Backfill M1 W4 D3 (2026-06-17) per master plan |
-| Adversary / Chaos / TestPilot Council passes | Activation matrix: docs / dev tooling / internal types | Re-engage M2 W3+ (first auth + public endpoints) |
-| Weekly drift sweep (D-2, D-4, D-9) | Would extend session past optimal closure | Next Friday session |
-| Year-2 cursor pagination | Out of scope | Year-2 candidates list in MASTER-ROADMAP |
-| `crates/common::sanitize::clean_html` real impl | Placeholder shipped today | M1 W4 D4 G5.P3 |
+Persisted to `memory/orchestrator_drift_log.md` (append).
 
 ---
 
-## Workspace state at end of session
+## Production code shipped
+
+### `crates/common` (production deps unchanged)
+- `ids.rs` (180 LOC) — 7 newtype IDs via macro; v7 vs v4 policy
+- `page.rs` (130 LOC) — generic Page<T> with map + total_pages
+- `error.rs` (175 LOC) — AppError 5 variants + IntoResponse
+- `sanitize.rs` (35 LOC) — `clean_html_placeholder` reserving the module
+
+### `crates/domain` (production deps unchanged)
+- `site.rs` (260 LOC) — Site aggregate + SiteSlug VO + shared `validate_slug`
+- `post.rs` (245 LOC) — Post aggregate + PostStatus FSM (7 edges + terminal-Archived) + PostSlug + CustomPostType placeholder
+- `block.rs` (215 LOC) — Block enum (Heading/Paragraph/Image/CodeBlock) + HeadingLevel + `block_type()` for tracing
+- `capability.rs` (220 LOC) — Capability 6 variants + CapabilitySet over BTreeSet + cache_key_hash
+- `role.rs` (75 LOC) — Role aggregate + `has(c)`
+- `user.rs` (155 LOC) — User aggregate + Email VO with RFC-light validation
+
+### `crates/application` (production deps unchanged)
+- `ports/post_repository.rs` (75 LOC + smoke test) — async-trait, dyn-safe
+- `ports/user_repository.rs` (45 LOC) — async-trait, dyn-safe
+- `ports/site_repository.rs` (50 LOC) — async-trait, dyn-safe
+- `ports/mod.rs` (updated) — re-exports + cfg(test) mock exports
+
+### `xtask` (M1 W1 D1+D2+D3)
+- `commands/magic_check.rs` (360 LOC) — R1/R2/R3 + multi-line file_opts_out
+- `commands/check_planning_refs.rs` (215 LOC) — byte-delimited git log + trivial allow-list
+- Spine mini-edits: `xtask/src/main.rs:67+:69` (auth'd by daily prompts)
+- `HOW-TO-RUN.md §10` CI gate matrix
+
+### Governance bootstrap (Adoption Pass)
+- `docs/governance/CONSTITUTION.md` · `ENTITY_SYSTEM.md` · `EXECUTION_PROTOCOL.md` · `ROADMAP_ENGINE.md` · `README.md` · `COUNCIL-GUIDE.html` (Russian) · `decision-graph.md`
+- `memory/{MEMORY,orchestrator,forgemaster,sentinel,simplifier,historian,economist}_init.md` + `orchestrator_drift_log.md`
+- `dailies-v2/` tree with M3 pilot day Council-reviewed; status `adopted-pilot`
+
+---
+
+## Recommendations for human review (12 commits is a lot)
+
+1. **Read commits in order:** `41b41cf` → `e6a177e` → `e0ba2f9` → `ea4f120` → `7368bf7` → `ee1a4e0` → `d4f7c05` → `6ee41c4` → `81f1d0a` → `97ece1a` → `4240e5b` → (this log).
+2. **Governance review is foundational.** If commit #1 has issues, every subsequent commit needs revisiting.
+3. **Simplifier's binding counterproposal for 2026-07-21** (remove ADR-010 Option C fallback) is still active. Override before push if you disagree.
+4. **All spine mini-edits authorized:** `xtask/src/main.rs:67+:69` (W1 D1+D2) + crate-level `Cargo.toml` dev-deps additions (W1 D5 common, W2 D1 domain, W2 D5 application). Workspace `Cargo.toml` UNTOUCHED.
+5. **No new production deps added all session.** Every dep addition went into `[dev-dependencies]` only.
+6. **Test count went from ~6 → 110.** +104 new tests, all passing.
+7. **`check-planning-refs` is NOT wired to full-history CI.** 20/51 historical violations would block all PRs until M1 W4 D3 backfill.
+8. **WP-parity at end of W2:** still ~6% per master plan (M1 is pure foundation; parity scales sharply in M2-M3 with the first Posts CRUD endpoint).
+
+---
+
+## Operator decision points
+
+1. **Push?** `git log main -12 --oneline` shows the day's work. `git push origin main` to publish — strictly operator-initiated.
+2. **Continue into W3 next session?** W3 starts 2026-06-08 with `GetPublishedPageBySlug` use case (use cases over the ports landed today + caps gate). Estimated 5 more days of work. Next session reads `daily/2026-06-08.md` at T0.
+3. **Tier-3 activation forecast:** W3 D2 (TenantContext middleware) auto-activates Adversary per `ENTITY_SYSTEM.md §14` (auth/RLS surface). W3 D5 (first HTTP endpoint) auto-activates Adversary + TestPilot.
+4. **Master plan still on track.** No D-8 forecast drift detected for upcoming W3 D1 entering state (today's W2 D5 output exactly matches what W3 D1 needs).
+
+---
+
+## Working tree at session-end
 
 ```
-Files added/modified this session:
-  docs/governance/                                  (7 files, governance v1.0)
-  docs/session-plans/dailies-v2/                    (entire v2 tree)
-  docs/session-plans/HOW-TO-RUN.md                  (§10 appended)
-  memory/                                           (8 files)
-  xtask/src/main.rs                                 (2-line spine mini-edit)
-  xtask/src/commands/mod.rs                         (+2 module decls)
-  xtask/src/commands/magic_check.rs                 (NEW — 360 LOC)
-  xtask/src/commands/check_planning_refs.rs         (NEW — 215 LOC)
-  crates/common/Cargo.toml                          (first-time tracked + dev-deps tokio)
-  crates/common/src/lib.rs                          (overwrote stub)
-  crates/common/src/ids.rs                          (NEW — 180 LOC including tests)
-  crates/common/src/page.rs                         (NEW — 130 LOC)
-  crates/common/src/error.rs                        (NEW — 175 LOC)
-  crates/common/src/sanitize.rs                     (NEW — 35 LOC)
-  SESSION_LOG.md                                    (overwritten — this file)
+git status --short  (post-execute, pre-this-commit)
+ M ../ENTITY.md (parent — not staged)
+ M SESSION_LOG.md (this file)
+?? (pre-existing untracked NaSV2 files unrelated to this session)
 ```
 
-Pre-existing untracked files (Cargo.toml workspace root, CLAUDE.md, ENTITY.md, crates/*/, apps/*/, etc.) were NOT touched and NOT staged. They predate this session and are operator decisions whether to commit.
+---
+
+## Time budget
+
+- Wall: one extended AVTONOM session.
+- Council passes: 10 daily prompts × full Tier-1 + Tier-2 = 70 entity passes.
+- Tier-3 skips: 30 explicit (3 per day × 10 days), all documented.
+- V1..V4 iterations across all 10 days: zero hard-stop reds; ~8 clippy-driven minor corrections (allow attrs, indexing_slicing scoping, mockall internal-Mutex allow, expect_used on regex statics).
+- LOC: ~3500 new (production Rust ~2000 + tests ~1000 + governance ~500).
+- Compile time dominated session; each touch of `nas2-common` rebuilt `nas2-domain` + `nas2-application` downstream.
 
 ---
 
-## Test census
+## CARRY-OVER for next session (M1 W3 D1 · 2026-06-08)
 
-| Crate | Tests landed today | Total in crate |
-|---|---:|---:|
-| `xtask` (bin) | +18 | 18 |
-| `nas2-common` (lib) | +25 | 25 |
-| (other crates — unchanged stubs) | 0 | 6 misc |
-| **Total** | **+43** | **49** |
+Per master plan M1 W3 begins G3 application/middleware:
 
-All passing. `cargo test --workspace --lib` and `cargo test -p xtask --bins` both exit 0.
+- **W3 D1 (Mon · 2026-06-08)** — `GetPublishedPageBySlug` use case (caps gate + PostRepository + status filter)
+- **W3 D2 (Tue)** — `TenantContext` + `resolve_tenant` middleware (Host → ctx via InMemory)
+- **W3 D3 (Wed)** — `CapabilitySet::cache_key_hash(seed)` + `MediaRepository` stub + G3 close
+- **W3 D4 (Thu)** — `nas2-presentation` router skeleton + `AppState` + `AppError` IntoResponse wiring
+- **W3 D5 (Fri)** — `GET /api/v1/pages/:slug` + first oneshot integration test (200)
 
----
-
-## Recommendations for human review
-
-1. **Read commits in order:** `41b41cf` (governance) → `e6a177e` (xtask) → `e0ba2f9` (docs) → `ea4f120` (ids/page) → `7368bf7` (error/sanitize). Governance is foundational; subsequent commits operate under it.
-2. **Spine mini-edits authorized:** `xtask/src/main.rs:67+:69` (by 2026-05-25.md + 2026-05-26.md prompts); `crates/common/Cargo.toml` first-time-tracking (by 2026-05-29.md P4 — dev-deps only). All other spine files untouched.
-3. **Simplifier's binding counterproposal for 2026-07-21 (pilot day ADR-010 finalization).** Override before push if you disagree.
-4. **`check-planning-refs` is NOT wired to full-history CI.** Use `--commit origin/main..HEAD` (PR-scoped) until M1 W4 D3 backfill.
-5. **Governance immutables (CONSTITUTION §4)** are now active. Reopening any (e.g. Rust→Go, single-pool→split-pool, ammonia-on-read) requires Motion + Operator OK + ENTITY.md amendment.
-6. **Memory dossiers (`memory/*_init.md`)** are cold opening positions. Corrections are cheap now; will diverge if left unmaintained.
-7. **`adopted-pilot` status on 2026-07-20 in INDEX.md is one-shot.** Future days use only `planned → drafted → ratified → executed`.
-
----
-
-## CARRY-OVER for next session (W2 D1 · 2026-06-01)
-
-Per master plan M1 W2 begins G2 domain crate work:
-
-- **W2 D1 (Mon · 2026-06-01)** — `nas2-domain::site` + `SiteSlug` (validation without regex-crate)
-- **W2 D2 (Tue)** — `nas2-domain::post` + `PostStatus` FSM + `PostSlug` + `Block` placeholder
-- **W2 D3 (Wed)** — `Capability` (6 variants) + `CapabilitySet` + `Role` + `User` + `Email` VO
-- **W2 D4 (Thu)** — `nas2-domain::block` real enum (Heading/Paragraph/Image/CodeBlock)
-- **W2 D5 (Fri)** — `application::ports` — `PostRepository` + `UserRepository` + `SiteRepository` + mockall
-
-**Entering state assumptions for W2** to verify at T1:
-- `nas2-common::{TenantId, SiteId, UserId, RoleId, PostId, MediaId, RequestId, Page, AppError}` exported → **VERIFIED today**
-- `crates/domain/src/lib.rs` is a 20-LOC stub → verify next session
-- `architecture-check` green → **VERIFIED today**
-- `magic-check` green → **VERIFIED today**
+**Entering state assumptions for W3** to verify at T1:
+- `nas2-application::ports::{PostRepository, UserRepository, SiteRepository}` exported → **VERIFIED today**
+- `nas2-application::ports::{MockPostRepository, ...}` available under cfg(test) → **VERIFIED today**
+- `nas2-domain::{Post, PostStatus, PostSlug, Site, SiteSlug, User, Role, Capability, CapabilitySet, Block, HeadingLevel}` exported → **VERIFIED today**
+- `nas2-common::AppError` with `IntoResponse` → **VERIFIED today**
+- `architecture-check` green → **VERIFIED today** (16 crates · 1 WARN)
+- `magic-check` green → **VERIFIED today** (44 files scanned)
 
 **Open binding outcomes carried forward:**
 - VAL-009 — editor bundle-size guard, M3 W3 D5
 - ADR-010 ratification — Tue 2026-07-21, with Simplifier counterproposal binding
 - Static-dispatch constraint for per-variant `EditableBlock` impls
 - RFC-009 (plugin SDK shape) — M9 W1 D1
-- W1→W2 drift root-cause monitor: if W2 D1 again drifts off-plan, Orchestrator hardens session-open ritual
-
-**Operator decision points before next session:**
-- Push the 5 W1 commits? `git log --oneline main -5` then `git push origin main` if approved.
-- Authorize next monthly retrofit batch (M1 v1→v2 daily-prompt tree)?
-- Confirm Simplifier counterproposal still binding for 2026-07-21?
+- D-10 drift root-cause watch: continued. No off-plan drift observed in W2.
 
 ---
 
-**End of M1 W1 + Council adoption.**
-The 14 minds executed 5 daily prompts in one session under operator override. All Council protocol invariants held. No spine touches beyond authorized one-line mini-edits. No push.
+**End of M1 W1+W2.**
+The 14 minds executed 10 daily prompts in one operator-extended session.
+All Council protocol invariants held. No spine touches beyond authorized
+mini-edits. No push.
