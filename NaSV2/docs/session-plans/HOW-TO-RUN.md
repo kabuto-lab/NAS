@@ -169,3 +169,44 @@ session and:
 
 If you need any of those, do them yourself — the system stays
 predictable specifically because it never crosses these lines.
+
+---
+
+## 10 · CI gate matrix (as of 2026-05-27)
+
+| Gate | Real? | CI? | Notes |
+|---|:---:|:---:|---|
+| `cargo fmt -- --check` | ✅ | ✅ | always-on |
+| `cargo clippy --workspace --all-targets -- -D warnings` | ✅ | ✅ | always-on |
+| `cargo test --workspace --lib --no-fail-fast` | ✅ | ✅ | `--ignored` integration tests deferred (need Docker in CI) |
+| `cargo xtask architecture-check` | ✅ | ✅ | warns on `nas2-presentation → nas2-infrastructure` (Phase-B DI refactor pending — documented waiver in `crates/presentation/Cargo.toml`) |
+| `cargo xtask magic-check` | ✅ | ✅ | R1 raw `tokio::spawn` outside supervisor · R2 `lazy_static!` outside registry · R3 `macro_rules!` body > 50 LOC (ENTITY §9.4, §18.2) |
+| `cargo xtask check-planning-refs --commit HEAD` | ✅ | ⚠️ NOT wired (full range) | ENTITY §13 commit-message gate (`\b(RFC\|ADR\|PLAN\|VAL)-\w{1,16}\b`). 20/51 historical commits fail; backfill scheduled M1 W4 D3 (G5.P2). CI must use `--commit origin/main..HEAD` range (PR-scoped) until backfill lands. |
+| `cargo xtask capability-coverage` | ❌ stub | ✅ (stub passes) | Real impl lands M1 W4 D2 (G5.P1) per `MONTH-SKELETON-01.md`. Stub returns 0 so CI shape stays stable. |
+| `cargo deny check` | ✅ (workspace action) | ✅ | Supply-chain · banned crates · GPL contamination · RUSTSEC advisories |
+
+### Local run-all (recommended after any non-trivial commit)
+
+```bash
+cargo fmt --all -- --check && \
+cargo clippy --workspace --all-targets -- -D warnings && \
+cargo test --workspace --lib --no-fail-fast && \
+cargo run -p xtask -- architecture-check && \
+cargo run -p xtask -- magic-check && \
+cargo run -p xtask -- check-planning-refs --commit HEAD~1..HEAD && \
+cargo run -p xtask -- capability-coverage && \
+cargo deny check
+```
+
+### Status as of 2026-05-27 verification sweep
+
+All 4 xtask gates exit 0 against current `main` HEAD:
+
+| Gate | Result |
+|---|---|
+| `architecture-check` | ok · 16 crates inspected · 1 documented warning (presentation→infra) |
+| `magic-check` | ok · 31 files scanned across `crates/` `apps/` `xtask/` |
+| `check-planning-refs --commit HEAD~1..HEAD` | ok · 1 commit (HEAD references `PLAN-G1`) |
+| `capability-coverage` | stub — implementation pending (planned M1 W4 D2) |
+
+Full-history `check-planning-refs --commit HEAD` reports 20/51 historical violations — **expected**, scheduled M1 W4 D3 backfill. Do NOT wire full-history into CI until backfill commits land.
