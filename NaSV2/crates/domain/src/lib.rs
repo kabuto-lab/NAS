@@ -9,15 +9,16 @@
 
 pub mod block;
 pub mod capability;
+pub mod media;
 pub mod post;
 pub mod role;
 pub mod site;
 pub mod user;
 // pub mod taxonomy;      // deferred to month 2
-// pub mod media;         // deferred
 
 pub use block::{Block, HeadingLevel};
 pub use capability::{Capability, CapabilitySet};
+pub use media::Media;
 pub use post::{CustomPostType, Post, PostSlug, PostStatus};
 pub use role::Role;
 pub use site::{Site, SiteSlug};

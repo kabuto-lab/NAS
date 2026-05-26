@@ -105,17 +105,23 @@ impl CapabilitySet {
         self.0.iter().copied()
     }
 
-    /// Non-cryptographic per-process-stable hash, used to compose cache
-    /// keys (ENTITY §3.9.1). Two calls within the same process always
-    /// produce the same value for equal sets; values may differ across
-    /// Rust versions or processes.
+    /// Non-cryptographic per-process-stable hash composed with a
+    /// caller-supplied `seed`. Useful for cache-key composition
+    /// (ENTITY §3.9.1). The seed lets callers mix in additional
+    /// context (e.g. tenant_id hash) without rebuilding the set.
     ///
-    /// Cross-process cache-key stability (e.g. shared L2 cache) requires
-    /// a stable hash function — switch to `xxh3` when the first
-    /// cross-process consumer lands (M10 Dragonfly fan-out).
+    /// **Caveats:**
+    ///   - Within a single process invocation, equal sets yield equal
+    ///     hashes regardless of insertion order (BTreeSet is ordered).
+    ///   - Across processes / Rust versions the values may differ —
+    ///     `DefaultHasher` is intentionally unstable.
+    ///   - For cross-process stability (shared L2 cache with non-Rust
+    ///     consumers) switch to `xxh3_64` via `xxhash-rust`. That dep
+    ///     addition is a separate ADR (planned with M10 fan-out).
     #[must_use]
-    pub fn cache_key_hash(&self) -> u64 {
+    pub fn cache_key_hash(&self, seed: u64) -> u64 {
         let mut h = std::collections::hash_map::DefaultHasher::new();
+        seed.hash(&mut h);
         for c in &self.0 {
             c.hash(&mut h);
         }
@@ -185,8 +191,8 @@ mod tests {
         let a = CapabilitySet::from_iter([Capability::CmsPageRead, Capability::CmsPagePublish]);
         let b = CapabilitySet::from_iter([Capability::CmsPagePublish, Capability::CmsPageRead]);
         assert_eq!(
-            a.cache_key_hash(),
-            b.cache_key_hash(),
+            a.cache_key_hash(0),
+            b.cache_key_hash(0),
             "BTreeSet ordering guarantees equal hash regardless of insert order"
         );
     }
@@ -195,7 +201,28 @@ mod tests {
     fn set_hash_changes_with_membership() {
         let a = CapabilitySet::from_iter([Capability::CmsPageRead]);
         let b = CapabilitySet::from_iter([Capability::CmsPageRead, Capability::CmsPagePublish]);
-        assert_ne!(a.cache_key_hash(), b.cache_key_hash());
+        assert_ne!(a.cache_key_hash(0), b.cache_key_hash(0));
+    }
+
+    #[test]
+    fn set_hash_changes_with_seed() {
+        let a = CapabilitySet::from_iter([Capability::CmsPageRead]);
+        assert_ne!(
+            a.cache_key_hash(0),
+            a.cache_key_hash(42),
+            "different seeds must produce different hashes"
+        );
+    }
+
+    #[test]
+    fn set_hash_insertion_order_invariant() {
+        let mut a = CapabilitySet::new();
+        a.insert(Capability::CmsPageRead);
+        a.insert(Capability::MediaUpload);
+        let mut b = CapabilitySet::new();
+        b.insert(Capability::MediaUpload);
+        b.insert(Capability::CmsPageRead);
+        assert_eq!(a.cache_key_hash(0xDEAD_BEEF), b.cache_key_hash(0xDEAD_BEEF));
     }
 
     #[test]
