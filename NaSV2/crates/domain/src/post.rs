@@ -135,7 +135,9 @@ mod tests {
             title: "Hello".into(),
             status: PostStatus::Draft,
             published_at: None,
-            blocks: vec![Block::Placeholder],
+            blocks: vec![Block::Paragraph {
+                html: "Hello".to_owned(),
+            }],
             custom_type: None,
         }
     }

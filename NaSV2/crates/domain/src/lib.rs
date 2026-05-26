@@ -16,7 +16,7 @@ pub mod user;
 // pub mod taxonomy;      // deferred to month 2
 // pub mod media;         // deferred
 
-pub use block::Block;
+pub use block::{Block, HeadingLevel};
 pub use capability::{Capability, CapabilitySet};
 pub use post::{CustomPostType, Post, PostSlug, PostStatus};
 pub use role::Role;
