@@ -18,3 +18,9 @@ serde_json = { workspace = true }
 tracing = { workspace = true }
 thiserror = { workspace = true }
 # ZERO: sqlx, axum, tokio — enforced via architecture-check
+
+# dev-only: mockall for trait test doubles; tokio runtime for async tests.
+# Production binary unaffected.
+[dev-dependencies]
+mockall = { workspace = true }
+tokio = { workspace = true }
