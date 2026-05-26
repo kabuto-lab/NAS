@@ -20,6 +20,7 @@ eyre = { workspace = true }
 tracing = { workspace = true }
 axum = { workspace = true }
 http = { workspace = true }
+ammonia = { workspace = true }
 
 # dev-only: tokio runtime for axum-body-collection tests (error.rs).
 # Common stays runtime-free in production deps.

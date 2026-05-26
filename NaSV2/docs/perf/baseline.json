@@ -1,0 +1,8 @@
+{
+  "benches": {
+    "pool_mode_from_str/session": 65.43688589951188,
+    "pool_mode_from_str/statement": 56.48258695827636,
+    "pool_mode_from_str/transaction": 60.63227676487551,
+    "pool_mode_from_str/weird-future-mode": 108.34371072922696
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "captured_at": "2026-06-18",
+  "captured_on": "operator-windows-host",
+  "tolerance_pct": 5,
+  "method": "path-A (cargo bench bootstrap via xtask bench-runner)",
+  "benches_scope": [
+    "nas2-pool-validator::pool_mode_check (only criterion bench in workspace as of M1 W4)"
+  ],
+  "note": "First-baseline bootstrap. Re-capture on a quiet machine or CI runner before relying on regression detection. Windows + antivirus on target/ can produce ±30% noise; CI host re-baseline is the M11 W4 production-prep follow-up."
+}
