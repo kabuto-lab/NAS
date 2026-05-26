@@ -56,3 +56,22 @@ metadata:
 ## Outstanding architect-level questions
 
 (none open at adoption — all delegated decisions resolved in pilot)
+
+## 2026-05-26 mission expansion — MPD-001 binding
+
+**Operator-ratified Master-Plan Diff (out-of-cycle, per ROADMAP_ENGINE §6 re-planning trigger):**
+
+- Source: `docs/governance/master-plan-diffs/MPD-001-commerce-crm-pivot.md`
+- Mission expansion doc: `docs/governance/MISSION-V2-COMMERCE-CRM.md`
+- Effect: AX•CMS mission extends from "WordPress replacement" to **"Content + Commerce + CRM runtime"**. Stack unchanged. Domain widens.
+
+**Orchestrator's forward-looking obligations:**
+
+1. At M1 W4 D5 RETRO (2026-06-19) — produce `docs/session-plans/MASTER-PLAN-12-MONTH-v2.html` reflecting MPD-001 §3 (revised month themes).
+2. At M1 W4 D5 RETRO — regenerate M2 daily prompts (2026-06-22..07-17) to interleave commerce + CRM with content work.
+3. Update `dailies-v2/INDEX.md` rows for M2+ to reflect revised themes.
+4. At every monthly RETRO M2..M12 — verify the corresponding `MONTH-SKELETON-NN.md` reflects MPD-001; mark as superseded if it doesn't.
+5. ENTITY.md §0 amendment is QUEUED — pending operator-authorized ENTITY spine-touch window. Until then MISSION-V2 + MPD-001 are canonical mission.
+6. Tier-3 Adversary auto-engages on every commerce + CRM endpoint (per ENTITY_SYSTEM §14 + MPD-001 §Sentinel verdict).
+
+**No effect on M1 W4** — foundation work (xtask coverage gate, planning backfill, ammonia, RETRO) is shared by all three product threads.
