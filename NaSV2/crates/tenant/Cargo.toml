@@ -1,0 +1,25 @@
+[package]
+name = "nas2-tenant"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+nas2-common = { workspace = true }
+nas2-domain = { workspace = true }
+nas2-application = { workspace = true }
+axum = { workspace = true }
+async-trait = { workspace = true }
+moka = { workspace = true }
+sqlx = { workspace = true }
+tokio = { workspace = true }
+tracing = { workspace = true }
+
+# dev-only: tower::ServiceExt::oneshot for middleware integration tests.
+[dev-dependencies]
+tower = { workspace = true }
